@@ -22,13 +22,16 @@ build/
 # Expo / mobile
 mobile/node_modules/
 mobile/.expo/
+mobile/ios/
+mobile/android/
+mobile-client/.expo/
+mobile-client/ios/
+mobile-client/android/
 *.jks
 *.p8
 *.p12
 *.key
 *.mobileprovision
-mobile/ios/
-mobile/android/
 
 # Misc
 .DS_Store
