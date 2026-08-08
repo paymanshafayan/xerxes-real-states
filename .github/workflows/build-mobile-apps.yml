@@ -1,0 +1,212 @@
+# ============================================================================
+# Build Mobile Apps — Android & iOS (both apps)
+# ----------------------------------------------------------------------------
+# Builds release outputs for BOTH Expo apps in this repo:
+#   • staff  app  → mobile/        (اپ استاف — admin & consultant app)
+#   • client app  → mobile-client/ (اپ مشاری — guest/client app)
+#
+# Outputs (uploaded as GitHub Actions artifacts):
+#   • Android → signed release APK (debug keystore) + release AAB
+#   • iOS     → unsigned Release IPA (device build, no code signing)
+#
+# Note on store distribution:
+#   These builds are NOT App Store / Play Store ready out of the box
+#   (Android is signed with the debug keystore, iOS is unsigned).
+#   For store-signed builds use EAS Build instead:
+#     cd mobile && npx eas build --platform all --profile production
+#   (the repo already ships eas.json; requires an EAS account + EXPO_TOKEN).
+#
+# Secrets / variables (all optional for CI builds):
+#   • vars.EXPO_PUBLIC_API_URL → backend base URL baked into the app
+#     (when unset, the app.json default "http://localhost:3000" is kept)
+# ============================================================================
+
+name: Build Mobile Apps (Android & iOS)
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "mobile/**"
+      - "mobile-client/**"
+      - ".github/workflows/build-mobile-apps.yml"
+  pull_request:
+    branches: [main]
+    paths:
+      - "mobile/**"
+      - "mobile-client/**"
+      - ".github/workflows/build-mobile-apps.yml"
+  workflow_dispatch:
+    inputs:
+      app:
+        description: "App to build (staff = اپ استاف | client = اپ مشاری)"
+        type: choice
+        default: both
+        options:
+          - both
+          - staff
+          - client
+      platform:
+        description: "Platform to build"
+        type: choice
+        default: both
+        options:
+          - both
+          - android
+          - ios
+
+concurrency:
+  group: build-mobile-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # ---------------------------------------------------------------- prepare
+  # Compute the build matrix (app × platform) honoring dispatch inputs.
+  prepare:
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.set-matrix.outputs.matrix }}
+    steps:
+      - id: set-matrix
+        env:
+          APP_INPUT: ${{ inputs.app || 'both' }}
+          PLATFORM_INPUT: ${{ inputs.platform || 'both' }}
+        run: |
+          APPS="staff client"
+          PLATFORMS="android ios"
+          [ "$APP_INPUT" != "both" ] && APPS="$APP_INPUT"
+          [ "$PLATFORM_INPUT" != "both" ] && PLATFORMS="$PLATFORM_INPUT"
+
+          MATRIX='[]'
+          for app in $APPS; do
+            if [ "$app" = "staff" ]; then dir="mobile"; else dir="mobile-client"; fi
+            for platform in $PLATFORMS; do
+              MATRIX=$(jq -nc --argjson m "$MATRIX" \
+                --arg app "$app" --arg dir "$dir" --arg platform "$platform" \
+                '$m + [{app:$app, dir:$dir, platform:$platform}]')
+            done
+          done
+          echo "matrix=$MATRIX" >> "$GITHUB_OUTPUT"
+          echo "Build matrix: $MATRIX"
+
+  # ------------------------------------------------------------------- build
+  build:
+    name: ${{ matrix.app }} · ${{ matrix.platform }}
+    needs: prepare
+    runs-on: ${{ matrix.platform == 'ios' && 'macos-latest' || 'ubuntu-latest' }}
+    timeout-minutes: 120
+    strategy:
+      fail-fast: false
+      matrix:
+        include: ${{ fromJSON(needs.prepare.outputs.matrix) }}
+    env:
+      CI: "true"
+      EXPO_NO_TELEMETRY: "1"
+      # Optional repo variable — backend URL baked into the binary.
+      EXPO_PUBLIC_API_URL: ${{ vars.EXPO_PUBLIC_API_URL }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: ${{ matrix.dir }}/package-lock.json
+
+      - name: Set up JDK 17 (Android only)
+        if: matrix.platform == 'android'
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+
+      - name: Install JS dependencies
+        working-directory: ${{ matrix.dir }}
+        run: npm ci
+
+      - name: Set backend API URL (optional)
+        working-directory: ${{ matrix.dir }}
+        run: |
+          if [ -n "$EXPO_PUBLIC_API_URL" ]; then
+            node -e '
+              const fs = require("fs");
+              const p = "app.json";
+              const cfg = JSON.parse(fs.readFileSync(p, "utf8"));
+              cfg.expo.extra.apiUrl = process.env.EXPO_PUBLIC_API_URL;
+              fs.writeFileSync(p, JSON.stringify(cfg, null, 2) + "\n");
+              console.log("app.json extra.apiUrl ->", process.env.EXPO_PUBLIC_API_URL);
+            '
+          else
+            echo "EXPO_PUBLIC_API_URL is not set — keeping app.json default (localhost)."
+          fi
+
+      # ------------------------------------------------------------ ANDROID
+      - name: Generate native Android project
+        if: matrix.platform == 'android'
+        working-directory: ${{ matrix.dir }}
+        run: npx expo prebuild --platform android
+
+      - name: Build Android release (APK + AAB)
+        if: matrix.platform == 'android'
+        working-directory: ${{ matrix.dir }}/android
+        run: ./gradlew assembleRelease bundleRelease --no-daemon
+
+      - name: Upload Android artifacts
+        if: matrix.platform == 'android'
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.app }}-android-release
+          path: |
+            ${{ matrix.dir }}/android/app/build/outputs/apk/release/*.apk
+            ${{ matrix.dir }}/android/app/build/outputs/bundle/release/*.aab
+          if-no-files-found: error
+
+      # ---------------------------------------------------------------- iOS
+      - name: Generate native iOS project
+        if: matrix.platform == 'ios'
+        working-directory: ${{ matrix.dir }}
+        run: npx expo prebuild --platform ios --no-install
+
+      - name: Install CocoaPods dependencies
+        if: matrix.platform == 'ios'
+        working-directory: ${{ matrix.dir }}
+        run: npx pod-install
+
+      - name: Build iOS app (unsigned Release, device)
+        if: matrix.platform == 'ios'
+        working-directory: ${{ matrix.dir }}/ios
+        run: |
+          WORKSPACE=$(ls *.xcworkspace | head -n 1)
+          SCHEME=$(basename "$WORKSPACE" .xcworkspace)
+          echo "Building scheme '$SCHEME' from '$WORKSPACE'"
+          xcodebuild \
+            -workspace "$WORKSPACE" \
+            -scheme "$SCHEME" \
+            -configuration Release \
+            -sdk iphoneos \
+            -derivedDataPath ../build/ios \
+            CODE_SIGNING_ALLOWED=NO \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGN_IDENTITY="" \
+            build
+
+      - name: Package iOS IPA (unsigned)
+        if: matrix.platform == 'ios'
+        working-directory: ${{ matrix.dir }}
+        run: |
+          APP_PATH=$(ls -d build/ios/Build/Products/Release-iphoneos/*.app | head -n 1)
+          echo "App bundle: $APP_PATH"
+          mkdir -p Payload
+          cp -R "$APP_PATH" Payload/
+          zip -qry "${{ matrix.app }}-ios-release.ipa" Payload
+          rm -rf Payload
+          ls -lh "${{ matrix.app }}-ios-release.ipa"
+
+      - name: Upload iOS IPA
+        if: matrix.platform == 'ios'
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.app }}-ios-release
+          path: ${{ matrix.dir }}/${{ matrix.app }}-ios-release.ipa
+          if-no-files-found: error
