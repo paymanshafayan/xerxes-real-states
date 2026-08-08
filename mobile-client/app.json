@@ -1,0 +1,30 @@
+{
+  "expo": {
+    "name": "Xerxes Realty",
+    "slug": "xerxes-realty-client",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "scheme": "xerxesclient",
+    "userInterfaceStyle": "automatic",
+    "newArchEnabled": true,
+    "splash": {
+      "resizeMode": "contain",
+      "backgroundColor": "#FFFFFF"
+    },
+    "assetBundlePatterns": ["**/*"],
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.xerxes.realtyclient"
+    },
+    "android": {
+      "package": "com.xerxes.realtyclient",
+      "permissions": []
+    },
+    "extra": {
+      "apiUrl": "http://localhost:3000",
+      "eas": {
+        "projectId": "00000000-0000-0000-0000-000000000000"
+      }
+    }
+  }
+}

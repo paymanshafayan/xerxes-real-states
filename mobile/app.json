@@ -1,0 +1,54 @@
+{
+  "expo": {
+    "name": "Xerxes Realty",
+    "slug": "xerxes-realty",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "scheme": "xerxes",
+    "userInterfaceStyle": "automatic",
+    "newArchEnabled": true,
+    "splash": {
+      "resizeMode": "contain",
+      "backgroundColor": "#0F141C"
+    },
+    "assetBundlePatterns": ["**/*"],
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.xerxes.realtyapp",
+      "infoPlist": {
+        "NSCameraUsageDescription": "برای ثبت تصاویر و تور ۳۶۰ درجه ملک از دوربین استفاده می‌شود.",
+        "NSMicrophoneUsageDescription": "برای ضبط توضیحات صوتی و ویدئو از میکروفون استفاده می‌شود.",
+        "NSPhotoLibraryUsageDescription": "برای انتخاب تصاویر و ویدئو از گالری استفاده می‌شود.",
+        "NSLocationWhenInUseUsageDescription": "برای ثبت موقعیت ملک روی نقشه استفاده می‌شود."
+      }
+    },
+    "android": {
+      "package": "com.xerxes.realtyapp",
+      "permissions": [
+        "CAMERA",
+        "RECORD_AUDIO",
+        "READ_EXTERNAL_STORAGE",
+        "WRITE_EXTERNAL_STORAGE",
+        "ACCESS_FINE_LOCATION"
+      ]
+    },
+    "extra": {
+      "apiUrl": "http://localhost:3000",
+      "eas": {
+        "projectId": "00000000-0000-0000-0000-000000000000"
+      }
+    },
+    "plugins": [
+      [
+        "expo-notifications",
+        {
+          "ios": ["NOTIFICATIONS"],
+          "android": {
+            "channelId": "default",
+            "default": true
+          }
+        }
+      ]
+    ]
+  }
+}
