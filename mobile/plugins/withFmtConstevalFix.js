@@ -5,35 +5,36 @@
 //   error: call to consteval function 'fmt::basic_format_string<...>::
 //   basic_format_string<FMT_COMPILE_STRING, 0>' is not a constant expression
 //
-// React Native 0.76 bundles fmt 9.1.0 (via RCT-Folly), which uses C++20
-// `consteval` for compile-time format-string validation. Apple Clang 21
-// enforces stricter consteval rules, so compiling the fmt pod fails.
+// React Native 0.76 pulls in fmt 11.x. Apple Clang 21 rejects several of its
+// C++20 consteval format strings. Compiling only the fmt pod as C++17 avoids
+// that consteval path while leaving the rest of React Native on C++20.
 //
-// Fix: inject a `post_install` hook into the generated Podfile that forces
-// the `fmt` pod to compile as C++17 — `consteval` does not exist in C++17,
-// so fmt falls back to its runtime format-string validation. Only the fmt
-// target is affected; the rest of the project keeps C++20.
-//
-// This runs automatically during `expo prebuild` (locally and in CI), so no
-// workflow changes are required.
+// Ordering is important: React Native 0.76's `react_native_post_install`
+// unconditionally sets every native pod target to C++20. The workaround must
+// therefore be inserted AFTER that call, or React Native silently overwrites
+// it during `pod install`.
 // ---------------------------------------------------------------------------
 
 const fs = require("fs");
 const path = require("path");
 const { withDangerousMod } = require("@expo/config-plugins");
 
+const FIX_MARKER = "fmt consteval workaround";
+
 const FMT_FIX_SNIPPET = `
-  # --- fmt consteval workaround (Xcode 26.x / Apple Clang 21) ---
-  # fmt 9.x relies on C++20 consteval, which Apple Clang 21 rejects.
-  # Compiling fmt as C++17 skips consteval entirely (fmt falls back to
-  # runtime format-string validation). Only the fmt pod is affected.
-  installer.pods_project.targets.each do |target|
-    if target.name == 'fmt'
-      target.build_configurations.each do |config|
+
+    # --- fmt consteval workaround (Xcode 26.x / Apple Clang 21) ---
+    # Keep this after react_native_post_install: RN 0.76 sets all pod targets
+    # back to C++20 inside that helper.
+    fmt_target = installer.pods_project.targets.find { |target| target.name == 'fmt' }
+    if fmt_target
+      fmt_target.build_configurations.each do |config|
         config.build_settings['CLANG_CXX_LANGUAGE_STANDARD'] = 'c++17'
       end
+      Pod::UI.puts('[withFmtConstevalFix] fmt build setting: C++17')
+    else
+      Pod::UI.warn('[withFmtConstevalFix] fmt target not found')
     end
-  end
 `;
 
 module.exports = function withFmtConstevalFix(config) {
@@ -50,20 +51,30 @@ module.exports = function withFmtConstevalFix(config) {
     let podfile = fs.readFileSync(podfilePath, "utf8");
 
     // Already patched (idempotent).
-    if (podfile.includes("fmt consteval workaround")) {
+    if (podfile.includes(FIX_MARKER)) {
       return modConfig;
     }
 
-    const marker = "post_install do |installer|";
-    if (!podfile.includes(marker)) {
+    // Expo SDK 52 emits this multiline call inside the Podfile's post_install
+    // block. Append our setting to it so it wins over React Native's C++20
+    // assignment. Do not inject at the start of post_install.
+    const reactNativePostInstall =
+      /(^[\t ]*react_native_post_install\(\s*$[\s\S]*?^[\t ]*\)\s*$)/m;
+
+    if (!reactNativePostInstall.test(podfile)) {
       throw new Error(
-        "[withFmtConstevalFix] Could not find 'post_install do |installer|' in Podfile."
+        "[withFmtConstevalFix] Could not find react_native_post_install(...) in Podfile."
       );
     }
 
-    podfile = podfile.replace(marker, marker + "\n" + FMT_FIX_SNIPPET);
+    podfile = podfile.replace(
+      reactNativePostInstall,
+      (postInstallCall) => postInstallCall + FMT_FIX_SNIPPET
+    );
     fs.writeFileSync(podfilePath, podfile);
-    console.log("[withFmtConstevalFix] Podfile patched (fmt -> C++17).");
+    console.log(
+      "[withFmtConstevalFix] Podfile patched after react_native_post_install (fmt -> C++17)."
+    );
     return modConfig;
   }]);
 };
