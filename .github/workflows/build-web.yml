@@ -8,7 +8,7 @@
 #                generation (51+ routes), PWA service worker & manifest check,
 #                and build artifact upload.
 #
-# ####Copy this file to `.github/workflows/build-web.yml` in your GitHub repo.
+# Copy this file to `.github/workflows/build-web.yml` in your GitHub repo.
 # ============================================================================
 
 name: Build Backend & Frontend (Web)
@@ -26,7 +26,7 @@ on:
       - "next.config.ts"
       - "tsconfig.json"
       - "eslint.config.mjs"
-      - "jest.config.ts"
+      - "jest.config.js"
       - ".github/workflows/build-web.yml"
       - ".github/workflows/build-mobile-apps.yml"
   pull_request:
@@ -41,7 +41,7 @@ on:
       - "next.config.ts"
       - "tsconfig.json"
       - "eslint.config.mjs"
-      - "jest.config.ts"
+      - "jest.config.js"
       - ".github/workflows/build-web.yml"
       - ".github/workflows/build-mobile-apps.yml"
   workflow_dispatch:
@@ -91,12 +91,12 @@ jobs:
           restore-keys: |
             npm-root-
 
-      - name: Install dependencies
+      - name: Install dependencies (including dev tools)
         run: |
           if [ -f package-lock.json ]; then
-            npm ci --no-audit --no-fund
+            npm ci --include=dev --no-audit --no-fund
           else
-            npm install --no-audit --no-fund
+            npm install --include=dev --no-audit --no-fund
           fi
 
       - name: TypeScript typecheck
@@ -146,12 +146,12 @@ jobs:
             nextjs-${{ hashFiles('package-lock.json') }}-
             nextjs-
 
-      - name: Install dependencies
+      - name: Install dependencies (including dev tools)
         run: |
           if [ -f package-lock.json ]; then
-            npm ci --no-audit --no-fund
+            npm ci --include=dev --no-audit --no-fund
           else
-            npm install --no-audit --no-fund
+            npm install --include=dev --no-audit --no-fund
           fi
 
       - name: Build Next.js Production Bundle
