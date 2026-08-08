@@ -111,8 +111,14 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 20
-          cache: npm
-          cache-dependency-path: ${{ matrix.dir }}/package-lock.json
+
+      - name: Cache npm
+        uses: actions/cache@v4
+        with:
+          path: ~/.npm
+          key: npm-${{ matrix.dir }}-${{ hashFiles(format('{0}/package-lock.json', matrix.dir)) }}
+          restore-keys: |
+            npm-${{ matrix.dir }}-
 
       - name: Set up JDK 17 (Android only)
         if: matrix.platform == 'android'
@@ -123,7 +129,13 @@ jobs:
 
       - name: Install JS dependencies
         working-directory: ${{ matrix.dir }}
-        run: npm ci
+        run: |
+          if [ -f package-lock.json ]; then
+            npm ci --no-audit --no-fund
+          else
+            echo "::warning::package-lock.json not found — running npm install instead of npm ci"
+            npm install --no-audit --no-fund
+          fi
 
       - name: Set backend API URL (optional)
         working-directory: ${{ matrix.dir }}
@@ -170,26 +182,50 @@ jobs:
 
       - name: Install CocoaPods dependencies
         if: matrix.platform == 'ios'
-        working-directory: ${{ matrix.dir }}
-        run: npx pod-install
+        working-directory: ${{ matrix.dir }}/ios
+        run: pod install
 
       - name: Build iOS app (unsigned Release, device)
         if: matrix.platform == 'ios'
         working-directory: ${{ matrix.dir }}/ios
         run: |
-          WORKSPACE=$(ls *.xcworkspace | head -n 1)
-          SCHEME=$(basename "$WORKSPACE" .xcworkspace)
-          echo "Building scheme '$SCHEME' from '$WORKSPACE'"
-          xcodebuild \
-            -workspace "$WORKSPACE" \
-            -scheme "$SCHEME" \
-            -configuration Release \
-            -sdk iphoneos \
-            -derivedDataPath ../build/ios \
-            CODE_SIGNING_ALLOWED=NO \
-            CODE_SIGNING_REQUIRED=NO \
-            CODE_SIGN_IDENTITY="" \
-            build
+          set -euo pipefail
+          # Prefer the CocoaPods workspace; fall back to the .xcodeproj when
+          # no workspace was generated (e.g. pods not installed).
+          WORKSPACE=$(find . -maxdepth 1 -type d -name "*.xcworkspace" | head -n 1)
+          PROJECT=$(find . -maxdepth 1 -type d -name "*.xcodeproj" | head -n 1)
+          if [ -z "$WORKSPACE" ] && [ -z "$PROJECT" ]; then
+            echo "::error::No Xcode workspace or project found in ios/"
+            ls -la
+            exit 1
+          fi
+          if [ -n "$WORKSPACE" ]; then
+            SCHEME=$(basename "$WORKSPACE" .xcworkspace)
+            echo "Building scheme '$SCHEME' from workspace '$WORKSPACE'"
+            xcodebuild \
+              -workspace "$WORKSPACE" \
+              -scheme "$SCHEME" \
+              -configuration Release \
+              -sdk iphoneos \
+              -derivedDataPath ../build/ios \
+              CODE_SIGNING_ALLOWED=NO \
+              CODE_SIGNING_REQUIRED=NO \
+              CODE_SIGN_IDENTITY="" \
+              build
+          else
+            SCHEME=$(basename "$PROJECT" .xcodeproj)
+            echo "Building scheme '$SCHEME' from project '$PROJECT' (no workspace)"
+            xcodebuild \
+              -project "$PROJECT" \
+              -scheme "$SCHEME" \
+              -configuration Release \
+              -sdk iphoneos \
+              -derivedDataPath ../build/ios \
+              CODE_SIGNING_ALLOWED=NO \
+              CODE_SIGNING_REQUIRED=NO \
+              CODE_SIGN_IDENTITY="" \
+              build
+          fi
 
       - name: Package iOS IPA (unsigned)
         if: matrix.platform == 'ios'
