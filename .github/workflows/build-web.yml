@@ -1,0 +1,169 @@
+# ============================================================================
+# Build Backend & Frontend — Next.js Web App & API
+# ----------------------------------------------------------------------------
+# CI and Production Build for the fullstack Next.js web application:
+#   • backend  → TypeScript typecheck, ESLint, Jest unit & integration tests,
+#                Drizzle schema verification & API endpoints validation.
+#   • frontend → Production Next.js build (`next build`), SSR & static page
+#                generation (51+ routes), PWA service worker & manifest check,
+#                and build artifact upload.
+#
+# Copy this file to `.github/workflows/build-web.yml` in your GitHub repo.
+# ============================================================================
+
+name: Build Backend & Frontend (Web)
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "src/**"
+      - "public/**"
+      - "tests/**"
+      - "drizzle/**"
+      - "package.json"
+      - "package-lock.json"
+      - "next.config.ts"
+      - "tsconfig.json"
+      - "eslint.config.mjs"
+      - "jest.config.js"
+      - ".github/workflows/build-web.yml"
+      - ".github/workflows/build-mobile-apps.yml"
+  pull_request:
+    branches: [main]
+    paths:
+      - "src/**"
+      - "public/**"
+      - "tests/**"
+      - "drizzle/**"
+      - "package.json"
+      - "package-lock.json"
+      - "next.config.ts"
+      - "tsconfig.json"
+      - "eslint.config.mjs"
+      - "jest.config.js"
+      - ".github/workflows/build-web.yml"
+      - ".github/workflows/build-mobile-apps.yml"
+  workflow_dispatch:
+    inputs:
+      target:
+        description: "Component to build/test"
+        type: choice
+        default: both
+        options:
+          - both
+          - backend
+          - frontend
+      run_tests:
+        description: "Run unit & integration tests"
+        type: boolean
+        default: true
+
+concurrency:
+  group: build-web-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # ---------------------------------------------------------------- backend
+  backend:
+    name: Backend · Tests & Typecheck
+    if: ${{ github.event_name != 'workflow_dispatch' || inputs.target == 'both' || inputs.target == 'backend' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      CI: "true"
+      NODE_ENV: test
+      DATABASE_URL: ${{ secrets.DATABASE_URL || 'postgresql://postgres:postgres@localhost:5432/xerxes_test' }}
+      AUTH_SECRET: ${{ secrets.AUTH_SECRET || 'ci-build-auth-secret-key-32-chars-minimum-length-12345' }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Cache npm
+        uses: actions/cache@v4
+        with:
+          path: ~/.npm
+          key: npm-root-${{ hashFiles('package-lock.json') }}
+          restore-keys: |
+            npm-root-
+
+      - name: Install dependencies (including dev tools)
+        run: |
+          if [ -f package-lock.json ]; then
+            npm ci --include=dev --no-audit --no-fund
+          else
+            npm install --include=dev --no-audit --no-fund
+          fi
+
+      - name: TypeScript typecheck
+        run: npm run typecheck
+
+      - name: ESLint check
+        run: npm run lint
+
+      - name: Run Backend Tests (Jest)
+        if: ${{ github.event_name != 'workflow_dispatch' || inputs.run_tests }}
+        run: npm test
+
+  # --------------------------------------------------------------- frontend
+  frontend:
+    name: Frontend · Next.js Production Build
+    if: ${{ github.event_name != 'workflow_dispatch' || inputs.target == 'both' || inputs.target == 'frontend' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      CI: "true"
+      NODE_ENV: production
+      DATABASE_URL: ${{ secrets.DATABASE_URL || 'postgresql://postgres:postgres@localhost:5432/xerxes_build' }}
+      AUTH_SECRET: ${{ secrets.AUTH_SECRET || 'ci-build-auth-secret-key-32-chars-minimum-length-12345' }}
+      NEXT_PUBLIC_APP_URL: ${{ vars.NEXT_PUBLIC_APP_URL || 'http://localhost:3000' }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Cache npm
+        uses: actions/cache@v4
+        with:
+          path: ~/.npm
+          key: npm-root-${{ hashFiles('package-lock.json') }}
+          restore-keys: |
+            npm-root-
+
+      - name: Cache Next.js build cache
+        uses: actions/cache@v4
+        with:
+          path: ${{ github.workspace }}/.next/cache
+          key: nextjs-${{ hashFiles('package-lock.json') }}-${{ hashFiles('src/**/*.ts', 'src/**/*.tsx', 'src/**/*.css') }}
+          restore-keys: |
+            nextjs-${{ hashFiles('package-lock.json') }}-
+            nextjs-
+
+      - name: Install dependencies (including dev tools)
+        run: |
+          if [ -f package-lock.json ]; then
+            npm ci --include=dev --no-audit --no-fund
+          else
+            npm install --include=dev --no-audit --no-fund
+          fi
+
+      - name: Build Next.js Production Bundle
+        run: npm run build
+
+      - name: Upload Next.js build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: nextjs-production-build
+          path: |
+            .next/
+            public/
+            package.json
+            next.config.ts
+          if-no-files-found: error

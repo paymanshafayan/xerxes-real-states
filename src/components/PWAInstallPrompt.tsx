@@ -109,7 +109,7 @@ export default function PWAInstallPrompt() {
                 <svg viewBox="0 0 24 24" fill="currentColor" className="text-primary">
                   <path d="M12 2l3 3h-2v6h-2V5H9l3-3zm6 10v9H6v-9h2v7h8v-7h2z"/>
                 </svg>
-              </span> then "Add to Home Screen"
+              </span> then &quot;Add to Home Screen&quot;
             </p>
           </div>
         )}
