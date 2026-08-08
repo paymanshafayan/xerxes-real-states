@@ -91,7 +91,7 @@ export default function SavedSearchForm({
           Search Saved!
         </h3>
         <p className="text-sm text-gray-500">
-          You'll be notified when new properties match your criteria.
+          You&apos;ll be notified when new properties match your criteria.
         </p>
       </div>
     );

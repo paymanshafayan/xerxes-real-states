@@ -129,7 +129,14 @@ All new endpoints require `Authorization: Bearer <jwt>` (except `/api/staff/logi
   - App.tsx: Expo push handler + deep-link to chat thread on notification tap.
 - Both backend and mobile typecheck clean (0 errors).
 
-### Phase 7.6 - Polish and robustness
+### Phase 7.7 — CI/CD Workflows for Backend and Frontend
+- **GitHub Actions Workflows added & extended**:
+  - `.github/workflows/build-web.yml`: Dedicated CI/CD workflow for the fullstack Next.js web application.
+    - **Backend job**: Node.js 20, TypeScript typecheck (`tsc --noEmit`), ESLint, Jest unit & integration tests (`npm test`), Drizzle schema verification.
+    - **Frontend job**: Next.js production build (`next build`), SSR & 51+ static pages generation, PWA assets validation, and `.next` artifact packaging/upload (`upload-artifact@v4`).
+  - `.github/workflows/build-mobile-apps.yml`: Extended to build Backend, Frontend, and Mobile apps (Staff & Client for Android APK/AAB and iOS IPA) with flexible `workflow_dispatch` targets (`all`, `web`, `backend`, `frontend`, `mobile`).
+  - `package.json`: Added `npm test` script (`jest --forceExit`).
+  - ESLint configuration: Configured `eslint.config.mjs` and fixed JSX unescaped entities for zero-error linting.
 - Offline auto-sync: src/lib/propertySubmit.ts extracts submit logic; on network failure the draft is saved with pendingSync true; syncPendingDrafts runs on app resume and submits queued drafts.
 - 360 panorama viewer in PropertyDetailScreen (horizontal pan + 360 badge).
 - Activity log screen for managers (GET /api/admin/activity) plus a new tab.

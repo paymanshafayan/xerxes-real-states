@@ -1,16 +1,24 @@
 # ============================================================================
-# Build Mobile Apps & Web (Backend, Frontend, Android & iOS)
+# Build Mobile Apps — Android & iOS (both apps)
 # ----------------------------------------------------------------------------
-# Builds release outputs and runs CI for all components in this repo:
-#   • backend  → TypeScript typecheck, ESLint, Jest unit & integration tests
-#   • frontend → Production Next.js build (`next build`), SSR/static generation
-#   • staff app  → mobile/        (اپ استاف — admin & consultant Expo app)
-#   • client app → mobile-client/ (اپ مشاری — guest/client Expo app)
+# Builds release outputs for BOTH Expo apps in this repo:
+#   • staff  app  → mobile/        (اپ استاف — admin & consultant app)
+#   • client app  → mobile-client/ (اپ مشاری — guest/client app)
 #
 # Outputs (uploaded as GitHub Actions artifacts):
-#   • Web (Frontend) → Next.js production build bundle (.next, public)
-#   • Android        → signed release APK (debug keystore) + release AAB
-#   • iOS            → unsigned Release IPA (device build, no code signing)
+#   • Android → signed release APK (debug keystore) + release AAB
+#   • iOS     → unsigned Release IPA (device build, no code signing)
+#
+# Note on store distribution:
+#   These builds are NOT App Store / Play Store ready out of the box
+#   (Android is signed with the debug keystore, iOS is unsigned).
+#   For store-signed builds use EAS Build instead:
+#     cd mobile && npx eas build --platform all --profile production
+#   (the repo already ships eas.json; requires an EAS account + EXPO_TOKEN).
+#
+# Secrets / variables (all optional for CI builds):
+#   • vars.EXPO_PUBLIC_API_URL → backend base URL baked into the app
+#     (when unset, the app.json default "http://localhost:3000" is kept)
 # ============================================================================
 
 name: Build Mobile Apps (Android & iOS)
@@ -19,49 +27,19 @@ on:
   push:
     branches: [main]
     paths:
-      - "src/**"
-      - "public/**"
-      - "tests/**"
-      - "drizzle/**"
-      - "package.json"
-      - "package-lock.json"
-      - "next.config.ts"
-      - "tsconfig.json"
-      - "eslint.config.mjs"
-      - "jest.config.ts"
       - "mobile/**"
       - "mobile-client/**"
-      - ".github/workflows/**"
+      - ".github/workflows/build-mobile-apps.yml"
   pull_request:
     branches: [main]
     paths:
-      - "src/**"
-      - "public/**"
-      - "tests/**"
-      - "drizzle/**"
-      - "package.json"
-      - "package-lock.json"
-      - "next.config.ts"
-      - "tsconfig.json"
-      - "eslint.config.mjs"
-      - "jest.config.ts"
       - "mobile/**"
       - "mobile-client/**"
-      - ".github/workflows/**"
+      - ".github/workflows/build-mobile-apps.yml"
   workflow_dispatch:
     inputs:
-      target:
-        description: "Target to build (all | web | backend | frontend | mobile)"
-        type: choice
-        default: all
-        options:
-          - all
-          - web
-          - backend
-          - frontend
-          - mobile
       app:
-        description: "Mobile app to build (staff = اپ استاف | client = اپ مشاری)"
+        description: "App to build (staff = اپ استاف | client = اپ مشاری)"
         type: choice
         default: both
         options:
@@ -69,7 +47,7 @@ on:
           - staff
           - client
       platform:
-        description: "Mobile platform to build"
+        description: "Platform to build"
         type: choice
         default: both
         options:
@@ -78,117 +56,13 @@ on:
           - ios
 
 concurrency:
-  group: build-all-${{ github.workflow }}-${{ github.ref }}
+  group: build-mobile-${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
-  # ---------------------------------------------------------------- backend
-  backend:
-    name: Backend · Tests & Typecheck
-    if: ${{ github.event_name != 'workflow_dispatch' || inputs.target == 'all' || inputs.target == 'web' || inputs.target == 'backend' }}
-    runs-on: ubuntu-latest
-    timeout-minutes: 20
-    env:
-      CI: "true"
-      NODE_ENV: test
-      DATABASE_URL: ${{ secrets.DATABASE_URL || 'postgresql://postgres:postgres@localhost:5432/xerxes_test' }}
-      AUTH_SECRET: ${{ secrets.AUTH_SECRET || 'ci-build-auth-secret-key-32-chars-minimum-length-12345' }}
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Set up Node.js 20
-        uses: actions/setup-node@v4
-        with:
-          node-version: 20
-
-      - name: Cache npm
-        uses: actions/cache@v4
-        with:
-          path: ~/.npm
-          key: npm-root-${{ hashFiles('package-lock.json') }}
-          restore-keys: |
-            npm-root-
-
-      - name: Install dependencies
-        run: |
-          if [ -f package-lock.json ]; then
-            npm ci --no-audit --no-fund
-          else
-            npm install --no-audit --no-fund
-          fi
-
-      - name: TypeScript typecheck
-        run: npm run typecheck
-
-      - name: ESLint check
-        run: npm run lint
-
-      - name: Run Backend Tests (Jest)
-        run: npm test
-
-  # --------------------------------------------------------------- frontend
-  frontend:
-    name: Frontend · Next.js Production Build
-    if: ${{ github.event_name != 'workflow_dispatch' || inputs.target == 'all' || inputs.target == 'web' || inputs.target == 'frontend' }}
-    runs-on: ubuntu-latest
-    timeout-minutes: 30
-    env:
-      CI: "true"
-      NODE_ENV: production
-      DATABASE_URL: ${{ secrets.DATABASE_URL || 'postgresql://postgres:postgres@localhost:5432/xerxes_build' }}
-      AUTH_SECRET: ${{ secrets.AUTH_SECRET || 'ci-build-auth-secret-key-32-chars-minimum-length-12345' }}
-      NEXT_PUBLIC_APP_URL: ${{ vars.NEXT_PUBLIC_APP_URL || 'http://localhost:3000' }}
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Set up Node.js 20
-        uses: actions/setup-node@v4
-        with:
-          node-version: 20
-
-      - name: Cache npm
-        uses: actions/cache@v4
-        with:
-          path: ~/.npm
-          key: npm-root-${{ hashFiles('package-lock.json') }}
-          restore-keys: |
-            npm-root-
-
-      - name: Cache Next.js build cache
-        uses: actions/cache@v4
-        with:
-          path: ${{ github.workspace }}/.next/cache
-          key: nextjs-${{ hashFiles('package-lock.json') }}-${{ hashFiles('src/**/*.ts', 'src/**/*.tsx', 'src/**/*.css') }}
-          restore-keys: |
-            nextjs-${{ hashFiles('package-lock.json') }}-
-            nextjs-
-
-      - name: Install dependencies
-        run: |
-          if [ -f package-lock.json ]; then
-            npm ci --no-audit --no-fund
-          else
-            npm install --no-audit --no-fund
-          fi
-
-      - name: Build Next.js Production Bundle
-        run: npm run build
-
-      - name: Upload Next.js build artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: nextjs-production-build
-          path: |
-            .next/
-            public/
-            package.json
-            next.config.ts
-          if-no-files-found: error
-
   # ---------------------------------------------------------------- prepare
   # Compute the build matrix (app × platform) honoring dispatch inputs.
   prepare:
-    if: ${{ github.event_name != 'workflow_dispatch' || inputs.target == 'all' || inputs.target == 'mobile' }}
     runs-on: ubuntu-latest
     outputs:
       matrix: ${{ steps.set-matrix.outputs.matrix }}
@@ -219,7 +93,6 @@ jobs:
   build:
     name: ${{ matrix.app }} · ${{ matrix.platform }}
     needs: prepare
-    if: ${{ always() && needs.prepare.result == 'success' }}
     runs-on: ${{ matrix.platform == 'ios' && 'macos-latest' || 'ubuntu-latest' }}
     timeout-minutes: 120
     strategy:

@@ -316,6 +316,16 @@ Admin can import sample data into the database via the "Seed Database" button, w
 
 ---
 
+## 16. CI / CD & Workflows
+
+### GitHub Actions Workflows
+- **`.github/workflows/build-web.yml`**: Dedicated workflow for Web Backend and Frontend
+  - **Backend CI Job**: Runs on Ubuntu, performs TypeScript typechecking (`tsc --noEmit`), ESLint validation (`eslint .`), Jest test suites (`npm test` — 33 tests across API and cache), and DB/ORM schema consistency checks.
+  - **Frontend Build Job**: Runs on Ubuntu, executes Next.js production build (`npm run build` / `next build`), compiles 51+ static and SSR routes, bundles client assets, and uploads the production build artifact (`nextjs-production-build`).
+- **`.github/workflows/build-mobile-apps.yml`**: Comprehensive CI/CD workflow covering Backend, Frontend, and Mobile apps (Staff & Client apps for Android APK/AAB and iOS IPA).
+
+---
+
 ## 15. Phase 6 - Fixes & Completions
 
 ### Previously Missing - Now Completed
