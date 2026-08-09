@@ -26,6 +26,7 @@ import ROICalculator from "./ROICalculator";
 import AppointmentBooking from "./AppointmentBooking";
 import VirtualTour, { demo360Tours, demo360Images } from "./VirtualTour";
 import PaymentForm from "./PaymentForm";
+import VisitRequestModal from "./VisitRequestModal";
 import OptimizedImage from "./OptimizedImage";
 import type { SampleProperty, SampleAgent } from "@/lib/data/sampleData";
 import { featureLabels, sampleCities } from "@/lib/data/sampleData";
@@ -64,6 +65,7 @@ export default function PropertyDetail({
   });
   const [submitStatus, setSubmitStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
   const [showPayment, setShowPayment] = useState(false);
+  const [showVisitRequest, setShowVisitRequest] = useState(false);
 
   const title = getPropertyTitle(property, locale);
   const description = getPropertyDescription(property, locale);
@@ -357,6 +359,15 @@ export default function PropertyDetail({
             </div>
           )}
 
+          {/* Visit Request (Phase 8) */}
+          <button
+            onClick={() => setShowVisitRequest(true)}
+            className="w-full flex items-center justify-center gap-2 py-3 mb-4 bg-primary/10 text-primary border border-primary/20 font-semibold rounded-lg hover:bg-primary/20 transition-all"
+          >
+            <Calendar className="w-5 h-5" />
+            <span>درخواست بازدید</span>
+          </button>
+
           {/* Calculators (for sale properties) */}
           {property.type === "sale" && (
             <div className="space-y-3 mb-4">
@@ -466,6 +477,16 @@ export default function PropertyDetail({
           defaultAmount={Math.round(property.price * 0.1)}
           onSuccess={() => {}}
           onClose={() => setShowPayment(false)}
+        />
+      )}
+
+      {/* Visit Request Modal (Phase 8) */}
+      {showVisitRequest && (
+        <VisitRequestModal
+          isOpen={showVisitRequest}
+          onClose={() => setShowVisitRequest(false)}
+          listingId={property.id}
+          listingTitle={title}
         />
       )}
     </div>

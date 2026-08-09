@@ -12,6 +12,7 @@ import ThemeToggle from "./ThemeToggle";
 import UserMenu from "./UserMenu";
 import CurrencySelector from "./CurrencyConverter";
 import FlagIcon from "./FlagIcon";
+import NotificationBell from "./NotificationBell";
 
 interface HeaderProps {
   dict: Dictionary;
@@ -269,6 +270,9 @@ export default function Header({ dict, locale, onLocaleChange }: HeaderProps) {
                 </span>
               )}
             </Link>
+
+            {/* Notification Bell (Phase 8) */}
+            <NotificationBell />
 
             {/* Language Switcher - Flag and Abbreviation ONLY */}
             <div className="relative">

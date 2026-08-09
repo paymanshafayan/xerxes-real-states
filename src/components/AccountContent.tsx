@@ -1,8 +1,9 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { User, Mail, Phone, Camera, Save, LogOut, Bell, Shield } from "lucide-react";
+import { User, Mail, Phone, Camera, Save, LogOut, Bell, Shield, Megaphone, Calendar, MessageSquare } from "lucide-react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 
 interface UserData {
   id: number;
@@ -87,6 +88,60 @@ export default function AccountContent() {
   return (
     <div className="max-w-2xl mx-auto px-4 py-8">
       <h1 className="text-2xl font-bold text-gray-900 mb-8">Account Settings</h1>
+
+      {/* Quick Links (Phase 8) */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-6">
+        <Link
+          href="/account/listings"
+          className="bg-white border border-gray-200 rounded-xl p-4 hover:shadow-md transition flex items-center gap-3"
+        >
+          <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
+            <Megaphone className="w-5 h-5 text-primary" />
+          </div>
+          <div>
+            <p className="font-medium text-gray-900 text-sm">آگهی‌های من</p>
+            <p className="text-xs text-gray-500">ملک ثبت کنید</p>
+          </div>
+        </Link>
+        <Link
+          href="/account/visit-requests"
+          className="bg-white border border-gray-200 rounded-xl p-4 hover:shadow-md transition flex items-center gap-3"
+        >
+          <div className="w-10 h-10 rounded-lg bg-blue-100 flex items-center justify-center">
+            <Calendar className="w-5 h-5 text-blue-600" />
+          </div>
+          <div>
+            <p className="font-medium text-gray-900 text-sm">درخواست‌های بازدید</p>
+            <p className="text-xs text-gray-500">پیگیری</p>
+          </div>
+        </Link>
+        <Link
+          href="/account/notifications"
+          className="bg-white border border-gray-200 rounded-xl p-4 hover:shadow-md transition flex items-center gap-3"
+        >
+          <div className="w-10 h-10 rounded-lg bg-yellow-100 flex items-center justify-center">
+            <Bell className="w-5 h-5 text-yellow-600" />
+          </div>
+          <div>
+            <p className="font-medium text-gray-900 text-sm">نوتیفیکیشن‌ها</p>
+            <p className="text-xs text-gray-500">پیام‌ها</p>
+          </div>
+        </Link>
+      </div>
+
+      {/* Submit property CTA */}
+      <div className="bg-gradient-to-l from-primary to-primary-dark text-white rounded-xl p-5 mb-6 flex items-center justify-between">
+        <div>
+          <p className="font-semibold">ملکی برای فروش یا اجاره دارید؟</p>
+          <p className="text-sm text-white/80">رایگان ثبت کنید</p>
+        </div>
+        <Link
+          href="/list-property"
+          className="px-4 py-2 bg-white text-primary rounded-lg font-medium text-sm hover:bg-gray-100"
+        >
+          ثبت ملک
+        </Link>
+      </div>
 
       {/* Profile Section */}
       <div className="bg-white border border-gray-200 rounded-xl p-6 mb-6">
