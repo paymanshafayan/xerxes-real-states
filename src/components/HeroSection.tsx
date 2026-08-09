@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
-import { Search, ChevronLeft, ChevronRight } from "lucide-react";
+import { Search, ChevronLeft, ChevronRight, Home, Building2, Key, MapPin } from "lucide-react";
 import { useLocale } from "./AppShell";
 import OptimizedImage from "./OptimizedImage";
 
@@ -159,31 +159,35 @@ export default function HeroSection({ slides, textOverride }: HeroProps) {
                 onClick={() =>
                   router.push("/properties?type=sale&category=villa")
                 }
-                className="px-4 py-2 bg-white/15 backdrop-blur-sm text-white text-sm rounded-lg border border-white/25 hover:bg-white/25 transition-colors"
+                className="flex items-center gap-2 px-4 py-2 bg-white/15 backdrop-blur-sm text-white text-sm rounded-lg border border-white/25 hover:bg-white/25 transition-colors"
               >
-                🏡 {dict.property.villa}
+                <Home className="w-4 h-4 text-gray-300 fill-gray-300" />
+                <span>{dict.property.villa}</span>
               </button>
               <button
                 onClick={() =>
                   router.push("/properties?type=sale&category=apartment")
                 }
-                className="px-4 py-2 bg-white/15 backdrop-blur-sm text-white text-sm rounded-lg border border-white/25 hover:bg-white/25 transition-colors"
+                className="flex items-center gap-2 px-4 py-2 bg-white/15 backdrop-blur-sm text-white text-sm rounded-lg border border-white/25 hover:bg-white/25 transition-colors"
               >
-                🏢 {dict.property.apartment}
+                <Building2 className="w-4 h-4 text-gray-300 fill-gray-300" />
+                <span>{dict.property.apartment}</span>
               </button>
               <button
                 onClick={() => router.push("/properties?type=rent")}
-                className="px-4 py-2 bg-white/15 backdrop-blur-sm text-white text-sm rounded-lg border border-white/25 hover:bg-white/25 transition-colors"
+                className="flex items-center gap-2 px-4 py-2 bg-white/15 backdrop-blur-sm text-white text-sm rounded-lg border border-white/25 hover:bg-white/25 transition-colors"
               >
-                🔑 {dict.property.forRent}
+                <Key className="w-4 h-4 text-gray-300 fill-gray-300" />
+                <span>{dict.property.forRent}</span>
               </button>
               <button
                 onClick={() =>
                   router.push("/properties?type=sale&category=land")
                 }
-                className="px-4 py-2 bg-white/15 backdrop-blur-sm text-white text-sm rounded-lg border border-white/25 hover:bg-white/25 transition-colors"
+                className="flex items-center gap-2 px-4 py-2 bg-white/15 backdrop-blur-sm text-white text-sm rounded-lg border border-white/25 hover:bg-white/25 transition-colors"
               >
-                🌍 {dict.property.land}
+                <MapPin className="w-4 h-4 text-gray-300 fill-gray-300" />
+                <span>{dict.property.land}</span>
               </button>
             </div>
           </div>

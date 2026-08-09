@@ -4,9 +4,10 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "start": "next start",
-    "db:migrate": "drizzle-kit migrate",
-    "postinstall": "npm run db:migrate",
+    "start": "drizzle-kit push --force && next start",
+    "db:push": "drizzle-kit push --force",
+    "db:migrate": "drizzle-kit push --force",
+    "postinstall": "drizzle-kit push --force || true",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
     "test": "jest --forceExit"

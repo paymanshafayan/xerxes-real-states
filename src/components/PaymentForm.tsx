@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { CreditCard, X, Check, Shield, Lock } from "lucide-react";
+import { CreditCard, X, Check, Shield, Lock, Landmark } from "lucide-react";
 
 interface PaymentFormProps {
   propertyId?: number;
@@ -152,24 +152,28 @@ export default function PaymentForm({
                 </label>
                 <div className="grid grid-cols-2 gap-2">
                   {[
-                    { value: "card", label: "💳 Card" },
-                    { value: "bank_transfer", label: "🏦 Bank Transfer" },
-                  ].map((method) => (
+                    { value: "card", label: "Card", icon: CreditCard },
+                    { value: "bank_transfer", label: "Bank Transfer", icon: Landmark },
+                  ].map((method) => {
+                    const IconComponent = method.icon;
+                    return (
                     <button
                       key={method.value}
                       type="button"
                       onClick={() =>
                         setForm({ ...form, paymentMethod: method.value })
                       }
-                      className={`py-3 text-sm font-medium rounded-lg border transition-colors ${
+                      className={`flex items-center justify-center gap-2 py-3 text-sm font-medium rounded-lg border transition-colors ${
                         form.paymentMethod === method.value
                           ? "bg-primary text-white border-primary"
                           : "border-gray-200 text-gray-600 hover:border-primary"
                       }`}
                     >
-                      {method.label}
+                      <IconComponent className="w-4 h-4 text-gray-400 fill-gray-400" />
+                      <span>{method.label}</span>
                     </button>
-                  ))}
+                    );
+                  })}
                 </div>
               </div>
 

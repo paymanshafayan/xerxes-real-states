@@ -418,11 +418,19 @@ export default function AdminPanel() {
               <Database className="w-4 h-4" />
               {dict.admin.dataSource}
             </h3>
-            <p className="text-sm text-gray-500">
-              {stats.dataSource === "sample"
-                ? `📄 ${dict.admin.sampleData}`
-                : `🗄️ ${dict.admin.database}`}
-            </p>
+            <div className="flex items-center gap-1.5 text-sm text-gray-500">
+              {stats.dataSource === "sample" ? (
+                <>
+                  <FileText className="w-4 h-4 text-gray-400 fill-gray-400" />
+                  <span>{dict.admin.sampleData}</span>
+                </>
+              ) : (
+                <>
+                  <Database className="w-4 h-4 text-gray-400 fill-gray-400" />
+                  <span>{dict.admin.database}</span>
+                </>
+              )}
+            </div>
           </div>
         </div>
       )}
