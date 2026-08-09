@@ -42,6 +42,18 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Phase 8: Block check
+    if (user[0].isBlocked) {
+      return NextResponse.json(
+        {
+          error: "Account blocked",
+          reason: user[0].blockedReason || "Your account has been blocked",
+          code: "ACCOUNT_BLOCKED",
+        },
+        { status: 403 }
+      );
+    }
+
     const token = await signUserToken({
       id: user[0].id,
       email: user[0].email,
@@ -56,6 +68,7 @@ export async function POST(request: NextRequest) {
         name: user[0].name,
         phone: user[0].phone,
         avatar: user[0].avatar,
+        isBlocked: user[0].isBlocked,
       },
     });
   } catch (error) {

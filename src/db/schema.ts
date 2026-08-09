@@ -48,6 +48,10 @@ export const properties = pgTable("properties", {
   audioNotes: jsonb("audio_notes").$type<string[]>().notNull().default([]), // voice memos (url)
   documents: jsonb("documents").$type<string[]>().notNull().default([]), // scanned docs / contracts (url)
   virtualTourUrl: text("virtual_tour_url"), // Matterport / external embed
+  // --- User Listings integration (Phase 8) ---
+  isListed: boolean("is_listed").notNull().default(true), // false = hidden from public list
+  source: varchar("source", { length: 20 }).notNull().default("staff"), // staff | user_listing
+  listingId: integer("listing_id"), // FK to listings.id (added in Section 5 of migration)
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });
@@ -103,6 +107,11 @@ export const users = pgTable("users", {
   phone: varchar("phone", { length: 50 }),
   avatar: text("avatar"),
   createdAt: timestamp("created_at").notNull().defaultNow(),
+  // --- Block system (Phase 8: User Listings) ---
+  isBlocked: boolean("is_blocked").notNull().default(false),
+  blockedAt: timestamp("blocked_at"),
+  blockedReason: text("blocked_reason"),
+  blockedByStaffId: integer("blocked_by_staff_id"),
 });
 
 // --- Staff / Consultant accounts (Phase 7: RBAC) ---
@@ -273,5 +282,160 @@ export const media = pgTable("media", {
   uploadedById: integer("uploaded_by_id"), // staff.id
   durationSec: integer("duration_sec"),
   thumbnailUrl: text("thumbnail_url"),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
+// =============================================================================
+// Phase 8: User Listings + Visit Requests + Block System
+// =============================================================================
+
+// --- User profiles (extended user info, captured in listing form) ---
+export const userProfiles = pgTable("user_profiles", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull().unique().references(() => users.id, { onDelete: "cascade" }),
+  lastName: text("last_name"),
+  nationalId: varchar("national_id", { length: 20 }),
+  addressLine: text("address_line"),
+  city: varchar("city", { length: 100 }),
+  country: varchar("country", { length: 100 }).default("Turkey"),
+  postalCode: varchar("postal_code", { length: 20 }),
+  lat: doublePrecision("lat"),
+  lng: doublePrecision("lng"),
+  profileCompleted: boolean("profile_completed").notNull().default(false),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+});
+
+// --- Staff specialties (assignment matching) ---
+export const staffSpecialties = pgTable("staff_specialties", {
+  id: serial("id").primaryKey(),
+  staffId: integer("staff_id").notNull().references(() => staff.id, { onDelete: "cascade" }),
+  city: varchar("city", { length: 100 }),
+  category: varchar("category", { length: 50 }),
+  listingType: varchar("listing_type", { length: 20 }), // sale | rent
+  isActive: boolean("is_active").notNull().default(true),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
+// --- Listings (user-submitted property listings) ---
+export const listings = pgTable("listings", {
+  id: serial("id").primaryKey(),
+  slug: varchar("slug", { length: 255 }).notNull().unique(),
+  userId: integer("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  propertyId: integer("property_id").references(() => properties.id, { onDelete: "set null" }),
+  // Listing nature
+  listingKinds: jsonb("listing_kinds").$type<("sale" | "rent")[]>().notNull(),
+  category: varchar("category", { length: 50 }).notNull(), // villa | apartment | land | commercial
+  // Content
+  title: text("title").notNull(),
+  description: text("description").notNull(),
+  // Location
+  address: text("address").notNull(),
+  city: varchar("city", { length: 100 }).notNull(),
+  district: varchar("district", { length: 100 }),
+  country: varchar("country", { length: 100 }).default("Turkey"),
+  lat: doublePrecision("lat"),
+  lng: doublePrecision("lng"),
+  // Pricing
+  price: doublePrecision("price"), // sale price
+  rentDeposit: doublePrecision("rent_deposit"), // rental deposit
+  monthlyRent: doublePrecision("monthly_rent"), // monthly rent
+  currency: varchar("currency", { length: 10 }).notNull().default("GBP"),
+  // Specs
+  bedrooms: integer("bedrooms").notNull().default(0),
+  bathrooms: integer("bathrooms").notNull().default(0),
+  area: doublePrecision("area").notNull(),
+  features: jsonb("features").$type<string[]>().notNull().default([]),
+  // Media
+  images: jsonb("images").$type<string[]>().notNull().default([]),
+  videos: jsonb("videos").$type<string[]>().notNull().default([]),
+  panoramas: jsonb("panoramas").$type<string[]>().notNull().default([]),
+  // Contact (snapshot from profile at submit time)
+  contactName: text("contact_name").notNull(),
+  contactPhone: text("contact_phone").notNull(),
+  contactEmail: text("contact_email").notNull(),
+  // Moderation
+  approvalStatus: varchar("approval_status", { length: 20 }).notNull().default("pending"),
+  // pending | approved | rejected | removed | unavailable_reported
+  rejectionReason: text("rejection_reason"),
+  assignedStaffId: integer("assigned_staff_id").references(() => staff.id, { onDelete: "set null" }),
+  // Removal
+  removedByUser: boolean("removed_by_user").notNull().default(false),
+  removedAt: timestamp("removed_at"),
+  // Unavailability report (block trigger)
+  unavailabilityReportedAt: timestamp("unavailability_reported_at"),
+  unavailabilityReportNotes: text("unavailability_report_notes"),
+  // Timestamps
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+  reviewedAt: timestamp("reviewed_at"),
+});
+
+// --- Listings status history (audit trail) ---
+export const listingsStatusHistory = pgTable("listings_status_history", {
+  id: serial("id").primaryKey(),
+  listingId: integer("listing_id").notNull().references(() => listings.id, { onDelete: "cascade" }),
+  fromStatus: varchar("from_status", { length: 20 }),
+  toStatus: varchar("to_status", { length: 20 }).notNull(),
+  changedByUserId: integer("changed_by_user_id").references(() => users.id, { onDelete: "set null" }),
+  changedByStaffId: integer("changed_by_staff_id").references(() => staff.id, { onDelete: "set null" }),
+  note: text("note"),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
+// --- Notifications (in-app user notifications) ---
+export const notifications = pgTable("notifications", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  type: varchar("type", { length: 50 }).notNull(),
+  // listing_approved | listing_rejected | listing_removed | visit_request_status | account_blocked | account_unblocked
+  title: text("title").notNull(),
+  body: text("body").notNull(),
+  data: jsonb("data").$type<Record<string, any>>(),
+  readAt: timestamp("read_at"),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
+// --- Visit requests (visit booking workflow) ---
+export const visitRequests = pgTable("visit_requests", {
+  id: serial("id").primaryKey(),
+  listingId: integer("listing_id").notNull().references(() => listings.id, { onDelete: "cascade" }),
+  propertyId: integer("property_id").references(() => properties.id, { onDelete: "set null" }),
+  requesterUserId: integer("requester_user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  // Requester info (snapshot)
+  requesterName: text("requester_name").notNull(),
+  requesterPhone: text("requester_phone").notNull(),
+  requesterEmail: text("requester_email"),
+  preferredDate: timestamp("preferred_date"),
+  note: text("note"),
+  // Workflow
+  status: varchar("status", { length: 20 }).notNull().default("pending"),
+  // pending | staff_reviewing | owner_contacted | approved | rejected | completed | cancelled
+  staffId: integer("staff_id").references(() => staff.id, { onDelete: "set null" }),
+  // Owner contact result
+  ownerResponse: varchar("owner_response", { length: 20 }), // available | unavailable | no_response
+  ownerResponseNote: text("owner_response_note"),
+  contactedAt: timestamp("contacted_at"),
+  // Appointment
+  appointmentDate: timestamp("appointment_date"),
+  appointmentNotes: text("appointment_notes"),
+  // Notification tracking
+  requesterNotifiedAt: timestamp("requester_notified_at"),
+  unavailabilityReported: boolean("unavailability_reported").notNull().default(false),
+  // Timestamps
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+});
+
+// --- Reassignment requests (staff-initiated reassign workflow) ---
+export const reassignmentRequests = pgTable("reassignment_requests", {
+  id: serial("id").primaryKey(),
+  listingId: integer("listing_id").notNull().references(() => listings.id, { onDelete: "cascade" }),
+  requestedByStaffId: integer("requested_by_staff_id").notNull().references(() => staff.id, { onDelete: "cascade" }),
+  reason: text("reason").notNull(),
+  preferredStaffId: integer("preferred_staff_id").references(() => staff.id, { onDelete: "set null" }),
+  status: varchar("status", { length: 20 }).notNull().default("pending"), // pending | approved | rejected
+  resolvedByStaffId: integer("resolved_by_staff_id").references(() => staff.id, { onDelete: "set null" }),
+  resolvedAt: timestamp("resolved_at"),
+  resolutionNote: text("resolution_note"),
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
