@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 
 export default function SetupPage() {
   const router = useRouter();
-  const [form, setForm] = useState({ username: "", name: "", email: "", password: "", confirmPassword: "" });
+  const [form, setForm] = useState({ databaseUrl: "", username: "", name: "", email: "", password: "", confirmPassword: "" });
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
@@ -43,9 +43,10 @@ export default function SetupPage() {
         <p className="mb-2 text-sm font-semibold uppercase tracking-[0.2em] text-blue-400">Xerxes Real Estate</p>
         <h1 className="text-3xl font-bold">Initial setup</h1>
         <p className="mt-3 text-sm leading-6 text-slate-300">
-          Create the first manager account. A secure authentication secret is generated automatically and stored securely in the application database.
+          Connect your Railway PostgreSQL database, then create the first manager. A secure authentication secret is generated automatically.
         </p>
         <form onSubmit={submit} className="mt-7 space-y-4">
+          <Field label="PostgreSQL connection URL" type="password" value={form.databaseUrl} onChange={(databaseUrl) => setForm({ ...form, databaseUrl })} autoComplete="off" hint="Paste Railway’s DATABASE_URL. It is stored only in the attached protected Volume." />
           <Field label="Full name" value={form.name} onChange={(name) => setForm({ ...form, name })} autoComplete="name" />
           <Field label="Email" type="email" value={form.email} onChange={(email) => setForm({ ...form, email })} autoComplete="email" />
           <Field label="Username" value={form.username} onChange={(username) => setForm({ ...form, username })} autoComplete="username" hint="Letters, numbers, dot, underscore and dash only." />

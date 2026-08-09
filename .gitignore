@@ -33,7 +33,9 @@ mobile-client/android/
 *.key
 *.mobileprovision
 
-# Misc
+# Runtime bootstrap configuration (may contain database credentials)
+data/
+.runtime/
 .DS_Store
 *.log
 .tmp/

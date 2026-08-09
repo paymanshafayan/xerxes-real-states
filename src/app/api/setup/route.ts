@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import { randomBytes } from "crypto";
-import { db } from "@/db";
+import { configureDatabase, db } from "@/db";
+import { getBootstrapDatabaseUrl, saveBootstrapDatabaseUrl } from "@/lib/bootstrapConfig";
 import { sql } from "drizzle-orm";
 import { adminUsers, siteSettings, staff } from "@/db/schema";
 import { signStaffToken } from "@/lib/auth/jwt";
@@ -10,6 +11,9 @@ const AUTH_SECRET_SETTING = "auth_secret";
 
 /** Public setup state used to show the one-time setup screen on a new site. */
 export async function GET() {
+  if (!getBootstrapDatabaseUrl()) {
+    return NextResponse.json({ required: true, databaseReady: false });
+  }
   try {
     const existing = await db.select({ id: staff.id }).from(staff).limit(1);
     return NextResponse.json({ required: existing.length === 0 });
@@ -23,8 +27,8 @@ export async function GET() {
 /** Creates the one and only initial manager. It becomes unavailable afterwards. */
 export async function POST(request: NextRequest) {
   try {
-    const { username, name, email, password } = await request.json();
-    if (!username || !name || !email || !password) {
+    const { username, name, email, password, databaseUrl } = await request.json();
+    if (!username || !name || !email || !password || !databaseUrl) {
       return NextResponse.json({ error: "All fields are required." }, { status: 400 });
     }
     if (!/^[a-zA-Z0-9_.-]{3,100}$/.test(username)) {
@@ -33,6 +37,14 @@ export async function POST(request: NextRequest) {
     if (password.length < 12) {
       return NextResponse.json({ error: "Password must contain at least 12 characters." }, { status: 400 });
     }
+    if (typeof databaseUrl !== "string" || !/^postgres(ql)?:\/\//i.test(databaseUrl)) {
+      return NextResponse.json({ error: "Enter a valid PostgreSQL connection URL." }, { status: 400 });
+    }
+
+    // Verify the Railway PostgreSQL connection before persisting it to its
+    // attached Volume, then make it available to the running application.
+    await configureDatabase(databaseUrl);
+    await saveBootstrapDatabaseUrl(databaseUrl);
 
     const existing = await db.select({ id: staff.id }).from(staff).limit(1);
     if (existing.length > 0) {
