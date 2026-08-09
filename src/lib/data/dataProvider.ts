@@ -29,6 +29,17 @@ async function getDataSource(): Promise<"sample" | "database"> {
   return "sample";
 }
 
+async function getDbPropertiesCount(): Promise<number> {
+  try {
+    const result = await db
+      .select({ count: sql<number>`count(*)` })
+      .from(properties);
+    return Number(result[0]?.count || 0);
+  } catch {
+    return 0;
+  }
+}
+
 // Convert DB row to common format
 function dbRowToProperty(row: typeof properties.$inferSelect): SampleProperty {
   return {
@@ -93,40 +104,53 @@ export async function getProperties(
   const cacheKey = cacheKeys.properties(JSON.stringify(filters));
   const cached = await cache.get<SampleProperty[]>(cacheKey);
   if (cached) return cached;
-  // Database query
-  const conditions = [];
-  if (filters.type) conditions.push(eq(properties.type, filters.type));
-  if (filters.category) conditions.push(eq(properties.category, filters.category));
-  if (filters.city) conditions.push(eq(properties.city, filters.city));
-  if (filters.minPrice) conditions.push(gte(properties.price, filters.minPrice));
-  if (filters.maxPrice) conditions.push(lte(properties.price, filters.maxPrice));
-  if (filters.minBedrooms) conditions.push(gte(properties.bedrooms, filters.minBedrooms));
-  if (filters.featured) conditions.push(eq(properties.isFeatured, true));
-  if (filters.agentId) conditions.push(eq(properties.agentId, filters.agentId));
-  if (filters.search) {
-    conditions.push(
-      or(
-        ilike(properties.titleEn, `%${filters.search}%`),
-        ilike(properties.titleTr, `%${filters.search}%`),
-        ilike(properties.city, `%${filters.search}%`)
-      )!
-    );
+
+  try {
+    // Check if database is empty first
+    const dbTotalCount = await getDbPropertiesCount();
+    if (dbTotalCount === 0) {
+      // Empty database -> fallback to sample data for both web and mobile apps
+      return filterSampleProperties(sampleProperties, filters);
+    }
+
+    // Database query
+    const conditions = [];
+    if (filters.type) conditions.push(eq(properties.type, filters.type));
+    if (filters.category) conditions.push(eq(properties.category, filters.category));
+    if (filters.city) conditions.push(eq(properties.city, filters.city));
+    if (filters.minPrice) conditions.push(gte(properties.price, filters.minPrice));
+    if (filters.maxPrice) conditions.push(lte(properties.price, filters.maxPrice));
+    if (filters.minBedrooms) conditions.push(gte(properties.bedrooms, filters.minBedrooms));
+    if (filters.featured) conditions.push(eq(properties.isFeatured, true));
+    if (filters.agentId) conditions.push(eq(properties.agentId, filters.agentId));
+    if (filters.search) {
+      conditions.push(
+        or(
+          ilike(properties.titleEn, `%${filters.search}%`),
+          ilike(properties.titleTr, `%${filters.search}%`),
+          ilike(properties.city, `%${filters.search}%`)
+        )!
+      );
+    }
+
+    const query = db
+      .select()
+      .from(properties)
+      .where(conditions.length > 0 ? and(...conditions) : undefined)
+      .orderBy(desc(properties.createdAt))
+      .limit(filters.limit || 50)
+      .offset(filters.offset || 0);
+
+    const rows = await query;
+    const result = rows.map(dbRowToProperty);
+
+    // Cache for 2 minutes
+    await cache.set(cacheKey, result, 120);
+    return result;
+  } catch (error) {
+    console.error("Database query failed in getProperties, falling back to sample data:", error);
+    return filterSampleProperties(sampleProperties, filters);
   }
-
-  const query = db
-    .select()
-    .from(properties)
-    .where(conditions.length > 0 ? and(...conditions) : undefined)
-    .orderBy(desc(properties.createdAt))
-    .limit(filters.limit || 50)
-    .offset(filters.offset || 0);
-
-  const rows = await query;
-  const result = rows.map(dbRowToProperty);
-  
-  // Cache for 2 minutes
-  await cache.set(cacheKey, result, 120);
-  return result;
 }
 
 export async function getPropertyBySlug(
@@ -136,20 +160,30 @@ export async function getPropertyBySlug(
   if (source === "sample") {
     return sampleProperties.find((p) => p.slug === slug) || null;
   }
-  
+
   // Try cache
   const ck = cacheKeys.propertyDetail(slug);
   const cached = await cache.get<SampleProperty>(ck);
   if (cached) return cached;
-  
-  const rows = await db
-    .select()
-    .from(properties)
-    .where(eq(properties.slug, slug))
-    .limit(1);
-  const result = rows.length > 0 ? dbRowToProperty(rows[0]) : null;
-  if (result) await cache.set(ck, result, 300);
-  return result;
+
+  try {
+    const rows = await db
+      .select()
+      .from(properties)
+      .where(eq(properties.slug, slug))
+      .limit(1);
+    if (rows.length > 0) {
+      const result = dbRowToProperty(rows[0]);
+      await cache.set(ck, result, 300);
+      return result;
+    }
+    // If not found in DB, fallback to sample
+    const sample = sampleProperties.find((p) => p.slug === slug) || null;
+    return sample;
+  } catch (error) {
+    console.error("Database query failed in getPropertyBySlug, falling back to sample data:", error);
+    return sampleProperties.find((p) => p.slug === slug) || null;
+  }
 }
 
 export async function getPriceDrops(limit = 20): Promise<SampleProperty[]> {
@@ -165,15 +199,31 @@ export async function getPriceDrops(limit = 20): Promise<SampleProperty[]> {
   const cached = await cache.get<SampleProperty[]>(ck);
   if (cached) return cached;
 
-  const rows = await db
-    .select()
-    .from(properties)
-    .where(sql`${properties.previousPrice} IS NOT NULL AND ${properties.previousPrice} > ${properties.price}`)
-    .orderBy(desc(sql`${properties.previousPrice} - ${properties.price}`))
-    .limit(limit);
-  const result = rows.map(dbRowToProperty);
-  await cache.set(ck, result, 120);
-  return result;
+  try {
+    const dbTotalCount = await getDbPropertiesCount();
+    if (dbTotalCount === 0) {
+      return sampleProperties
+        .filter((p) => p.previousPrice && p.previousPrice > p.price)
+        .sort((a, b) => (b.previousPrice! - b.price) - (a.previousPrice! - a.price))
+        .slice(0, limit);
+    }
+
+    const rows = await db
+      .select()
+      .from(properties)
+      .where(sql`${properties.previousPrice} IS NOT NULL AND ${properties.previousPrice} > ${properties.price}`)
+      .orderBy(desc(sql`${properties.previousPrice} - ${properties.price}`))
+      .limit(limit);
+    const result = rows.map(dbRowToProperty);
+    await cache.set(ck, result, 120);
+    return result;
+  } catch (error) {
+    console.error("Database query failed in getPriceDrops, falling back to sample data:", error);
+    return sampleProperties
+      .filter((p) => p.previousPrice && p.previousPrice > p.price)
+      .sort((a, b) => (b.previousPrice! - b.price) - (a.previousPrice! - a.price))
+      .slice(0, limit);
+  }
 }
 
 export async function getPropertyById(
@@ -188,14 +238,23 @@ export async function getPropertyById(
   const cached = await cache.get<SampleProperty>(ck);
   if (cached) return cached;
 
-  const rows = await db
-    .select()
-    .from(properties)
-    .where(eq(properties.id, id))
-    .limit(1);
-  const result = rows.length > 0 ? dbRowToProperty(rows[0]) : null;
-  if (result) await cache.set(ck, result, 300);
-  return result;
+  try {
+    const rows = await db
+      .select()
+      .from(properties)
+      .where(eq(properties.id, id))
+      .limit(1);
+    if (rows.length > 0) {
+      const result = dbRowToProperty(rows[0]);
+      await cache.set(ck, result, 300);
+      return result;
+    }
+    // Fallback to sample data
+    return sampleProperties.find((p) => p.id === id) || null;
+  } catch (error) {
+    console.error("Database query failed in getPropertyById, falling back to sample data:", error);
+    return sampleProperties.find((p) => p.id === id) || null;
+  }
 }
 
 export async function getAgents(): Promise<SampleAgent[]> {
@@ -203,8 +262,16 @@ export async function getAgents(): Promise<SampleAgent[]> {
   if (source === "sample") {
     return sampleAgents;
   }
-  const rows = await db.select().from(agents);
-  return rows.map(dbRowToAgent);
+  try {
+    const rows = await db.select().from(agents);
+    if (rows.length > 0) {
+      return rows.map(dbRowToAgent);
+    }
+    return sampleAgents;
+  } catch (error) {
+    console.error("Database query failed in getAgents, falling back to sample agents:", error);
+    return sampleAgents;
+  }
 }
 
 export async function getAgentById(
@@ -214,15 +281,27 @@ export async function getAgentById(
   if (source === "sample") {
     return sampleAgents.find((a) => a.id === id) || null;
   }
-  const rows = await db.select().from(agents).where(eq(agents.id, id)).limit(1);
-  return rows.length > 0 ? dbRowToAgent(rows[0]) : null;
+  try {
+    const rows = await db.select().from(agents).where(eq(agents.id, id)).limit(1);
+    if (rows.length > 0) {
+      return dbRowToAgent(rows[0]);
+    }
+    return sampleAgents.find((a) => a.id === id) || null;
+  } catch (error) {
+    console.error("Database query failed in getAgentById, falling back to sample agent:", error);
+    return sampleAgents.find((a) => a.id === id) || null;
+  }
 }
 
 export async function getPropertyCount(): Promise<number> {
   const source = await getDataSource();
   if (source === "sample") return sampleProperties.length;
-  const result = await db.select({ count: sql<number>`count(*)` }).from(properties);
-  return Number(result[0].count);
+  try {
+    const count = await getDbPropertiesCount();
+    return count === 0 ? sampleProperties.length : count;
+  } catch {
+    return sampleProperties.length;
+  }
 }
 
 export async function getInquiryCount(): Promise<number> {
@@ -288,8 +367,11 @@ export async function setDataSource(source: "sample" | "database") {
     } else {
       await db.insert(siteSettings).values({ key: "data_source", value: source });
     }
-  } catch {
-    // Table might not exist
+    // Invalidate caches immediately
+    await cache.delPattern("properties:*");
+    await cache.delPattern("property:*");
+  } catch (error) {
+    console.error("Failed to set data source setting:", error);
   }
 }
 
@@ -415,4 +497,7 @@ export async function seedDatabaseFromSample() {
       });
     }
   }
+  // Invalidate caches
+  await cache.delPattern("properties:*");
+  await cache.delPattern("property:*");
 }

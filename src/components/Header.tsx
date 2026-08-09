@@ -1,8 +1,9 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import Link from "next/link";
-import { Menu, X, ChevronDown, Globe, Heart } from "lucide-react";
+import { usePathname, useSearchParams } from "next/navigation";
+import { Menu, X, ChevronDown, Heart } from "lucide-react";
 import type { Dictionary } from "@/lib/i18n/dictionaries";
 import type { Locale } from "@/lib/i18n/types";
 import { locales } from "@/lib/i18n/types";
@@ -10,6 +11,7 @@ import { getFavorites } from "@/lib/favorites";
 import ThemeToggle from "./ThemeToggle";
 import UserMenu from "./UserMenu";
 import CurrencySelector from "./CurrencyConverter";
+import FlagIcon from "./FlagIcon";
 
 interface HeaderProps {
   dict: Dictionary;
@@ -17,21 +19,189 @@ interface HeaderProps {
   onLocaleChange: (locale: Locale) => void;
 }
 
+interface NavItem {
+  key: string;
+  href: string;
+  label: string;
+  isActive: (pathname: string, searchType: string | null) => boolean;
+}
+
+function NavLinksDesktop({
+  dict,
+  pathname,
+  searchType,
+}: {
+  dict: Dictionary;
+  pathname: string;
+  searchType: string | null;
+}) {
+  const items: NavItem[] = [
+    {
+      key: "home",
+      href: "/",
+      label: dict.nav.home,
+      isActive: (p) => p === "/",
+    },
+    {
+      key: "buy",
+      href: "/properties?type=sale",
+      label: dict.nav.buy,
+      isActive: (p, s) => p.startsWith("/properties") && s === "sale",
+    },
+    {
+      key: "rent",
+      href: "/properties?type=rent",
+      label: dict.nav.rent,
+      isActive: (p, s) => p.startsWith("/properties") && s === "rent",
+    },
+    {
+      key: "blog",
+      href: "/blog",
+      label: "Blog",
+      isActive: (p) => p === "/blog" || p.startsWith("/blog/"),
+    },
+    {
+      key: "contact",
+      href: "/contact",
+      label: dict.nav.contact,
+      isActive: (p) => p === "/contact" || p.startsWith("/contact/"),
+    },
+  ];
+
+  return (
+    <nav className="hidden md:flex items-center gap-2">
+      {items.map((item) => {
+        const active = item.isActive(pathname, searchType);
+        return (
+          <Link
+            key={item.key}
+            href={item.href}
+            className={`px-3 py-2 text-sm transition-colors ${
+              active
+                ? "text-primary font-semibold"
+                : "text-gray-700 hover:text-primary font-medium"
+            }`}
+          >
+            {item.label}
+          </Link>
+        );
+      })}
+    </nav>
+  );
+}
+
+function MobileNavLinks({
+  dict,
+  pathname,
+  searchType,
+  onClose,
+}: {
+  dict: Dictionary;
+  pathname: string;
+  searchType: string | null;
+  onClose: () => void;
+}) {
+  const items: NavItem[] = [
+    {
+      key: "home",
+      href: "/",
+      label: dict.nav.home,
+      isActive: (p) => p === "/",
+    },
+    {
+      key: "buy",
+      href: "/properties?type=sale",
+      label: dict.nav.buy,
+      isActive: (p, s) => p.startsWith("/properties") && s === "sale",
+    },
+    {
+      key: "rent",
+      href: "/properties?type=rent",
+      label: dict.nav.rent,
+      isActive: (p, s) => p.startsWith("/properties") && s === "rent",
+    },
+    {
+      key: "blog",
+      href: "/blog",
+      label: "Blog",
+      isActive: (p) => p === "/blog" || p.startsWith("/blog/"),
+    },
+    {
+      key: "contact",
+      href: "/contact",
+      label: dict.nav.contact,
+      isActive: (p) => p === "/contact" || p.startsWith("/contact/"),
+    },
+  ];
+
+  return (
+    <nav className="flex flex-col gap-1">
+      {items.map((item) => {
+        const active = item.isActive(pathname, searchType);
+        return (
+          <Link
+            key={item.key}
+            href={item.href}
+            onClick={onClose}
+            className={`px-3 py-2.5 text-sm transition-colors ${
+              active
+                ? "text-primary font-semibold"
+                : "text-gray-700 hover:text-primary font-medium"
+            }`}
+          >
+            {item.label}
+          </Link>
+        );
+      })}
+    </nav>
+  );
+}
+
+function HeaderNavWrapper({
+  dict,
+  menuOpen,
+  setMenuOpen,
+}: {
+  dict: Dictionary;
+  menuOpen: boolean;
+  setMenuOpen: (open: boolean) => void;
+}) {
+  const pathname = usePathname() || "/";
+  const searchParams = useSearchParams();
+  const searchType = searchParams?.get("type") || null;
+
+  return (
+    <>
+      <NavLinksDesktop
+        dict={dict}
+        pathname={pathname}
+        searchType={searchType}
+      />
+      {menuOpen && (
+        <div className="md:hidden pb-4 border-t border-gray-100 mt-1 pt-3">
+          <MobileNavLinks
+            dict={dict}
+            pathname={pathname}
+            searchType={searchType}
+            onClose={() => setMenuOpen(false)}
+          />
+        </div>
+      )}
+    </>
+  );
+}
+
 export default function Header({ dict, locale, onLocaleChange }: HeaderProps) {
   const [menuOpen, setMenuOpen] = useState(false);
   const [langOpen, setLangOpen] = useState(false);
   const [favoriteCount, setFavoriteCount] = useState(0);
-
-  const currentLocale = locales.find((l) => l.code === locale)!;
 
   useEffect(() => {
     const updateCount = () => {
       setFavoriteCount(getFavorites().length);
     };
     updateCount();
-    // Listen for storage changes
     window.addEventListener("storage", updateCount);
-    // Check periodically for same-tab updates
     const interval = setInterval(updateCount, 1000);
     return () => {
       window.removeEventListener("storage", updateCount);
@@ -53,44 +223,29 @@ export default function Header({ dict, locale, onLocaleChange }: HeaderProps) {
           </Link>
 
           {/* Desktop Nav */}
-          <nav className="hidden md:flex items-center gap-1">
-            <Link
-              href="/"
-              className="px-3 py-2 text-sm font-medium text-gray-700 hover:text-primary rounded-lg hover:bg-gray-50 transition-colors"
-            >
-              {dict.nav.home}
-            </Link>
-            <Link
-              href="/properties?type=sale"
-              className="px-3 py-2 text-sm font-medium text-gray-700 hover:text-primary rounded-lg hover:bg-gray-50 transition-colors"
-            >
-              {dict.nav.buy}
-            </Link>
-            <Link
-              href="/properties?type=rent"
-              className="px-3 py-2 text-sm font-medium text-gray-700 hover:text-primary rounded-lg hover:bg-gray-50 transition-colors"
-            >
-              {dict.nav.rent}
-            </Link>
-            <Link
-              href="/blog"
-              className="px-3 py-2 text-sm font-medium text-gray-700 hover:text-primary rounded-lg hover:bg-gray-50 transition-colors"
-            >
-              Blog
-            </Link>
-            <Link
-              href="/contact"
-              className="px-3 py-2 text-sm font-medium text-gray-700 hover:text-primary rounded-lg hover:bg-gray-50 transition-colors"
-            >
-              {dict.nav.contact}
-            </Link>
-            <Link
-              href="/app"
-              className="px-3 py-2 text-sm font-medium text-gray-700 hover:text-primary rounded-lg hover:bg-gray-50 transition-colors"
-            >
-              {dict.nav.app}
-            </Link>
-          </nav>
+          <Suspense
+            fallback={
+              <nav className="hidden md:flex items-center gap-2">
+                <Link href="/" className="px-3 py-2 text-sm text-gray-700 hover:text-primary font-medium">
+                  {dict.nav.home}
+                </Link>
+                <Link href="/properties?type=sale" className="px-3 py-2 text-sm text-gray-700 hover:text-primary font-medium">
+                  {dict.nav.buy}
+                </Link>
+                <Link href="/properties?type=rent" className="px-3 py-2 text-sm text-gray-700 hover:text-primary font-medium">
+                  {dict.nav.rent}
+                </Link>
+                <Link href="/blog" className="px-3 py-2 text-sm text-gray-700 hover:text-primary font-medium">
+                  Blog
+                </Link>
+                <Link href="/contact" className="px-3 py-2 text-sm text-gray-700 hover:text-primary font-medium">
+                  {dict.nav.contact}
+                </Link>
+              </nav>
+            }
+          >
+            <HeaderNavWrapper dict={dict} menuOpen={menuOpen} setMenuOpen={setMenuOpen} />
+          </Suspense>
 
           {/* Right side */}
           <div className="flex items-center gap-1">
@@ -115,15 +270,19 @@ export default function Header({ dict, locale, onLocaleChange }: HeaderProps) {
               )}
             </Link>
 
-            {/* Language Switcher */}
+            {/* Language Switcher - Flag and Abbreviation ONLY */}
             <div className="relative">
               <button
+                type="button"
                 onClick={() => setLangOpen(!langOpen)}
-                className="flex items-center gap-1.5 px-3 py-2 text-sm font-medium text-gray-700 hover:text-primary rounded-lg hover:bg-gray-50 transition-colors"
+                className="flex items-center gap-1.5 px-2.5 py-1.5 text-sm font-medium text-gray-700 hover:text-primary rounded-lg hover:bg-gray-50 transition-colors"
+                aria-label="Change language"
               >
-                <Globe className="w-4 h-4" />
-                <span>{currentLocale.flag} {currentLocale.code.toUpperCase()}</span>
-                <ChevronDown className="w-3 h-3" />
+                <FlagIcon locale={locale} className="w-5 h-3.5" />
+                <span className="font-semibold text-xs tracking-wider uppercase">
+                  {locale.toUpperCase()}
+                </span>
+                <ChevronDown className="w-3.5 h-3.5 text-gray-400" />
               </button>
               {langOpen && (
                 <>
@@ -131,22 +290,25 @@ export default function Header({ dict, locale, onLocaleChange }: HeaderProps) {
                     className="fixed inset-0 z-10"
                     onClick={() => setLangOpen(false)}
                   />
-                  <div className="absolute right-0 mt-1 w-28 bg-white rounded-xl shadow-lg border border-gray-200 py-1 z-20">
+                  <div className="absolute right-0 rtl:right-auto rtl:left-0 mt-1 w-24 bg-white rounded-xl shadow-lg border border-gray-200 py-1 z-20 overflow-hidden">
                     {locales.map((loc) => (
                       <button
                         key={loc.code}
+                        type="button"
                         onClick={() => {
                           onLocaleChange(loc.code);
                           setLangOpen(false);
                         }}
-                        className={`w-full text-left px-4 py-2 text-sm hover:bg-gray-50 flex items-center gap-2 transition-colors ${
+                        className={`w-full px-3 py-2 text-sm hover:bg-gray-50 flex items-center justify-start gap-2.5 transition-colors ${
                           locale === loc.code
-                            ? "text-primary font-semibold bg-primary-light"
-                            : "text-gray-700"
+                            ? "text-primary font-bold bg-primary-light"
+                            : "text-gray-700 font-medium"
                         }`}
                       >
-                        <span className="text-base">{loc.flag}</span>
-                        <span className="font-medium uppercase">{loc.code.toUpperCase()}</span>
+                        <FlagIcon locale={loc.code} className="w-5 h-3.5" />
+                        <span className="font-semibold text-xs uppercase tracking-wider">
+                          {loc.code.toUpperCase()}
+                        </span>
                       </button>
                     ))}
                   </div>
@@ -166,56 +328,6 @@ export default function Header({ dict, locale, onLocaleChange }: HeaderProps) {
             </button>
           </div>
         </div>
-
-        {/* Mobile Nav */}
-        {menuOpen && (
-          <div className="md:hidden pb-4 border-t border-gray-100 mt-1 pt-3">
-            <nav className="flex flex-col gap-1">
-              <Link
-                href="/"
-                onClick={() => setMenuOpen(false)}
-                className="px-3 py-2.5 text-sm font-medium text-gray-700 hover:text-primary rounded-lg hover:bg-gray-50"
-              >
-                {dict.nav.home}
-              </Link>
-              <Link
-                href="/properties?type=sale"
-                onClick={() => setMenuOpen(false)}
-                className="px-3 py-2.5 text-sm font-medium text-gray-700 hover:text-primary rounded-lg hover:bg-gray-50"
-              >
-                {dict.nav.buy}
-              </Link>
-              <Link
-                href="/properties?type=rent"
-                onClick={() => setMenuOpen(false)}
-                className="px-3 py-2.5 text-sm font-medium text-gray-700 hover:text-primary rounded-lg hover:bg-gray-50"
-              >
-                {dict.nav.rent}
-              </Link>
-              <Link
-                href="/blog"
-                onClick={() => setMenuOpen(false)}
-                className="px-3 py-2.5 text-sm font-medium text-gray-700 hover:text-primary rounded-lg hover:bg-gray-50"
-              >
-                Blog
-              </Link>
-              <Link
-                href="/contact"
-                onClick={() => setMenuOpen(false)}
-                className="px-3 py-2.5 text-sm font-medium text-gray-700 hover:text-primary rounded-lg hover:bg-gray-50"
-              >
-                {dict.nav.contact}
-              </Link>
-              <Link
-                href="/app"
-                onClick={() => setMenuOpen(false)}
-                className="px-3 py-2.5 text-sm font-medium text-gray-700 hover:text-primary rounded-lg hover:bg-gray-50"
-              >
-                {dict.nav.app}
-              </Link>
-            </nav>
-          </div>
-        )}
       </div>
     </header>
   );
