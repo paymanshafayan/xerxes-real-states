@@ -11,7 +11,7 @@ import WhatsAppButton from "./WhatsAppButton";
 import LiveChat from "./LiveChat";
 import { CompareFloatingBar } from "./CompareProperties";
 import { CurrencyProvider } from "./CurrencyConverter";
-import PWAInstallPrompt from "./PWAInstallPrompt";
+import ClientAppButton from "./ClientAppButton";
 import ServiceWorkerRegister from "./ServiceWorkerRegister";
 import PageTracker from "./PageTracker";
 import { useSiteContent } from "./SiteContentProvider";
@@ -66,7 +66,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
         <WhatsAppButton phone={contact_info.whatsapp || undefined} />
         <LiveChat />
         <CompareFloatingBar />
-        <PWAInstallPrompt />
+        <ClientAppButton />
         <ServiceWorkerRegister />
         <PageTracker />
       </CurrencyProvider>
