@@ -22,9 +22,11 @@ export async function GET() {
       databaseConfigured: true,
     });
   } catch {
-    // Database configuration is not available yet; do not expose the setup
-    // flow until the application can persist it safely.
-    return NextResponse.json({ required: false, databaseReady: false });
+    return NextResponse.json({
+      required: true,
+      databaseConfigured: true,
+      databaseReady: false,
+    });
   }
 }
 
