@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { Feather } from "@expo/vector-icons";
 import {
   View,
   Text,
@@ -170,7 +171,7 @@ export default function MyListingDetailScreen() {
                 </Text>
                 {canAddPanorama && (
                   <TouchableOpacity onPress={() => removeOne(p)}>
-                    <Text style={styles.remove}>✗</Text>
+                    <Feather name="x" size={18} color="#ef4444" />
                   </TouchableOpacity>
                 )}
               </View>

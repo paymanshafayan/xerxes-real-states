@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { View, Text, Linking, StyleSheet } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
+import { Feather } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import { Screen, Card, IconListItem, BottomSheet } from "../components/ui";
 import { colors, spacing, typography, radius } from "../theme";
@@ -30,7 +31,7 @@ export default function MoreScreen() {
         style={styles.header}
       >
         <View style={styles.avatarCircle}>
-          <Text style={{ fontSize: 30 }}>🏠</Text>
+          <Feather name="home" size={30} color={colors.textOnPrimary} />
         </View>
         <Text style={styles.appName}>{APP_NAME}</Text>
       </LinearGradient>
@@ -38,31 +39,31 @@ export default function MoreScreen() {
       <View style={{ padding: spacing.md }}>
         <Card style={{ marginBottom: spacing.md }}>
           <IconListItem
-            emoji="📢"
+            icon="speaker"
             label="List My Property"
             onPress={() => navigation.navigate("ListProperty")}
           />
           <IconListItem
-            emoji="📋"
+            icon="clipboard"
             label="My Listings"
             onPress={() => navigation.navigate("MyListings")}
           />
           <IconListItem
-            emoji="📅"
+            icon="calendar"
             label="My Visit Requests"
             onPress={() => navigation.navigate("MyVisitRequests")}
           />
         </Card>
         <Card style={{ marginBottom: spacing.md }}>
           <IconListItem
-            emoji="❤️"
+            icon="heart"
             label={`${t("tabFavorites")}${favoritesCount ? ` (${favoritesCount})` : ""}`}
             onPress={() => navigation.navigate("Favorites")}
           />
-          <IconListItem emoji="🧮" label={t("calculators")} onPress={() => navigation.navigate("Calculators")} />
-          <IconListItem emoji="🌐" label={t("language")} onPress={() => setLangSheetOpen(true)} />
-          <IconListItem emoji="ℹ️" label={t("about")} onPress={() => setAboutSheetOpen(true)} />
-          <IconListItem emoji="🔗" label={t("visitWebsite")} onPress={() => Linking.openURL(API_URL)} />
+          <IconListItem icon="trending-up" label={t("calculators")} onPress={() => navigation.navigate("Calculators")} />
+          <IconListItem icon="globe" label={t("language")} onPress={() => setLangSheetOpen(true)} />
+          <IconListItem icon="info" label={t("about")} onPress={() => setAboutSheetOpen(true)} />
+          <IconListItem icon="link" label={t("visitWebsite")} onPress={() => Linking.openURL(API_URL)} />
         </Card>
       </View>
 

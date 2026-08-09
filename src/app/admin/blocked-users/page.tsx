@@ -1,4 +1,4 @@
-import AdminShell from "@/components/admin/AdminShell";
+import AdminPageLayout from "@/components/admin/AdminPageLayout";
 import BlockedUsersManager from "@/components/admin/BlockedUsersManager";
 
 export const metadata = {
@@ -7,8 +7,8 @@ export const metadata = {
 
 export default function AdminBlockedUsersPage() {
   return (
-    <AdminShell>
+    <AdminPageLayout title="کاربران بلاک‌شده" backHref="/admin">
       <BlockedUsersManager />
-    </AdminShell>
+    </AdminPageLayout>
   );
 }

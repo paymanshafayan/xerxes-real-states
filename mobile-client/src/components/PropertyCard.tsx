@@ -1,5 +1,6 @@
 import React from "react";
 import { View, Text, Image, TouchableOpacity, StyleSheet } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
 import type { Property } from "../api/types";
 import { colors, spacing, radius, typography, shadow } from "../theme";
 import { useFavoritesStore } from "../store/favorites";
@@ -72,7 +73,7 @@ export function PropertyCard({
           style={styles.listFavoriteBtn}
           hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
         >
-          <Text style={{ fontSize: 16 }}>{favorite ? "❤️" : "🤍"}</Text>
+          <Ionicons name={favorite ? "heart" : "heart-outline"} size={16} color={favorite ? colors.danger : colors.textMuted} />
         </TouchableOpacity>
       </TouchableOpacity>
     );
@@ -87,7 +88,7 @@ export function PropertyCard({
           style={styles.favoriteBtn}
           hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
         >
-          <Text style={{ fontSize: 16 }}>{favorite ? "❤️" : "🤍"}</Text>
+          <Ionicons name={favorite ? "heart" : "heart-outline"} size={16} color={favorite ? colors.danger : colors.textMuted} />
         </TouchableOpacity>
         {hasDrop && (
           <View style={styles.dropBadge}>
@@ -96,7 +97,7 @@ export function PropertyCard({
         )}
         {property.isFeatured && !hasDrop && (
           <View style={styles.featuredBadge}>
-            <Text style={styles.dropBadgeText}>★</Text>
+            <Ionicons name="star" size={11} color="#fff" />
           </View>
         )}
       </View>

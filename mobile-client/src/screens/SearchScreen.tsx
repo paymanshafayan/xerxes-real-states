@@ -98,11 +98,11 @@ export default function SearchScreen() {
         </View>
       </View>
       <View style={styles.iconRow}>
-        <IconButton emoji={layout === "grid" ? "▦" : "☰"} active onPress={() => setLayout(layout === "grid" ? "list" : "grid")} />
+        <IconButton icon={layout === "grid" ? "grid" : "list"} active onPress={() => setLayout(layout === "grid" ? "list" : "grid")} />
         <View style={styles.iconDivider} />
-        <IconButton emoji="⚗" onPress={() => setFilterSheetOpen(true)} />
+        <IconButton icon="filter" onPress={() => setFilterSheetOpen(true)} />
         <View style={styles.iconDivider} />
-        <IconButton emoji="⇅" onPress={() => setSortSheetOpen(true)} />
+        <IconButton icon="sliders" onPress={() => setSortSheetOpen(true)} />
       </View>
 
       {query.isLoading ? (

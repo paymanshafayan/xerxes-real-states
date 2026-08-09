@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { Feather } from "@expo/vector-icons";
 import { View, Text, TouchableOpacity, TextInput, StyleSheet } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import { useQuery } from "@tanstack/react-query";
@@ -38,7 +39,7 @@ export default function PropertyListScreen() {
             style={{ padding: 8, borderRadius: 10, backgroundColor: theme.surface, borderWidth: 1, borderColor: theme.border }}
             onPress={() => nav.navigate("Map")}
           >
-            <Text style={{ fontSize: 18 }}>🗺️</Text>
+            <Feather name="map" size={18} color={theme.primary} />
           </TouchableOpacity>
         </View>
         <TextInput

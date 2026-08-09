@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { Feather } from "@expo/vector-icons";
 import { View, Text, TouchableOpacity, Modal, StyleSheet, Alert } from "react-native";
 import { useRoute, useNavigation } from "@react-navigation/native";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -163,7 +164,7 @@ export default function PropertyFormScreen() {
         <Field label={`${t("description")} (FA)`} value={form.descFa} onChangeText={(v) => set("descFa", v)} multiline />
         <TouchableOpacity onPress={onTranslate} disabled={translating}>
           <Text style={[typography.small, { color: theme.accent, marginBottom: spacing.sm }]}>
-            {translating ? t("translating") : `✨ ${t("autoTranslate")}`}
+            {translating ? t("translating") : (<><Feather name="zap" size={12} color={theme.accent} /> {t("autoTranslate")}</>)}
           </Text>
         </TouchableOpacity>
       </Card>
@@ -180,7 +181,7 @@ export default function PropertyFormScreen() {
         <Field label={t("address")} value={form.address} onChangeText={(v) => set("address", v)} />
         <TouchableOpacity onPress={useCurrentLocation} style={{ marginBottom: spacing.md }}>
           <Text style={[typography.small, { color: theme.primary }]}>
-            📍 {form.lat && form.lng ? `${form.lat}, ${form.lng}` : (t("useCurrentLocation") || "Use current location")}
+            <Feather name="map-pin" size={12} color={theme.primary} /> {form.lat && form.lng ? `${form.lat}, ${form.lng}` : (t("useCurrentLocation") || "Use current location")}
           </Text>
         </TouchableOpacity>
         <Field label={t("features")} value={form.features} onChangeText={(v) => set("features", v)} placeholder="pool, garden, ..." />

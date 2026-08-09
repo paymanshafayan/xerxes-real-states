@@ -1,4 +1,5 @@
 import React from "react";
+import { Feather } from "@expo/vector-icons";
 import {
   View,
   Text,
@@ -303,12 +304,12 @@ export function SectionHeader({
 
 /** Circular-icon menu row, matching the Account screen's "My Orders / Wish List / ..." rows. */
 export function IconListItem({
-  emoji,
+  icon,
   label,
   onPress,
   tone = "primary",
 }: {
-  emoji: string;
+  icon: keyof typeof Feather.glyphMap;
   label: string;
   onPress?: () => void;
   tone?: "primary" | "danger";
@@ -316,7 +317,7 @@ export function IconListItem({
   return (
     <TouchableOpacity onPress={onPress} activeOpacity={0.7} style={styles.iconListItem}>
       <View style={[styles.iconCircle, tone === "danger" && { backgroundColor: colors.danger }]}>
-        <Text style={{ fontSize: 15 }}>{emoji}</Text>
+        <Feather name={icon} size={16} color={colors.textOnPrimary} />
       </View>
       <Text style={[typography.h3, { color: colors.text, fontWeight: "500" }]}>{label}</Text>
     </TouchableOpacity>
@@ -325,11 +326,11 @@ export function IconListItem({
 
 /** Small square icon button for toolbars (grid/list toggle, filter, sort). */
 export function IconButton({
-  emoji,
+  icon,
   onPress,
   active,
 }: {
-  emoji: string;
+  icon: keyof typeof Feather.glyphMap;
   onPress?: () => void;
   active?: boolean;
 }) {
@@ -339,7 +340,7 @@ export function IconButton({
       activeOpacity={0.7}
       style={[styles.iconButton, active && { backgroundColor: colors.primaryLight }]}
     >
-      <Text style={{ fontSize: 17 }}>{emoji}</Text>
+      <Feather name={icon} size={17} color={colors.text} />
     </TouchableOpacity>
   );
 }

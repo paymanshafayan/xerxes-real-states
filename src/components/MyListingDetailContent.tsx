@@ -550,7 +550,10 @@ export default function MyListingDetailContent() {
           onClick={() => setPreviewPanorama(null)}
         >
           <div className="w-full h-full max-w-6xl max-h-screen p-4">
-            <VirtualTour imageUrl={previewPanorama} onClose={() => setPreviewPanorama(null)} />
+            <VirtualTour
+              images360={[previewPanorama]}
+              propertyTitle="پیش‌نمایش ۳۶۰ درجه"
+            />
           </div>
         </div>
       )}

@@ -2,8 +2,31 @@ import { db } from "@/db";
 import { activityLogs } from "@/db/schema";
 import { desc, sql } from "drizzle-orm";
 
-export type ActionType = "create" | "update" | "delete" | "login" | "register" | "view" | "seed" | "setting_change";
-export type EntityType = "property" | "agent" | "user" | "inquiry" | "setting" | "admin" | "newsletter";
+export type ActionType =
+  | "create"
+  | "update"
+  | "delete"
+  | "login"
+  | "register"
+  | "view"
+  | "seed"
+  | "setting_change"
+  | "block"
+  | "unblock"
+  | "approve"
+  | "reject"
+  | "reassign"
+  | "reassign_reject";
+export type EntityType =
+  | "property"
+  | "agent"
+  | "user"
+  | "inquiry"
+  | "setting"
+  | "admin"
+  | "newsletter"
+  | "listing"
+  | "reassignment_request";
 
 export async function logActivity(data: {
   action: ActionType;

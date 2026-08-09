@@ -16,6 +16,7 @@ import {
   ChevronRight,
   Check,
   CreditCard,
+  Calendar,
 } from "lucide-react";
 import { useLocale } from "./AppShell";
 import PropertyCard from "./PropertyCard";

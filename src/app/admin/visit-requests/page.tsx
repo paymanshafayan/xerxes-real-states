@@ -1,4 +1,4 @@
-import AdminShell from "@/components/admin/AdminShell";
+import AdminPageLayout from "@/components/admin/AdminPageLayout";
 import StaffVisitRequestsManager from "@/components/admin/StaffVisitRequestsManager";
 
 export const metadata = {
@@ -7,8 +7,8 @@ export const metadata = {
 
 export default function AdminVisitRequestsPage() {
   return (
-    <AdminShell>
+    <AdminPageLayout title="درخواست‌های بازدید" backHref="/admin">
       <StaffVisitRequestsManager />
-    </AdminShell>
+    </AdminPageLayout>
   );
 }
