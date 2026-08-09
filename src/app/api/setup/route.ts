@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import { randomBytes } from "crypto";
 import { db } from "@/db";
+import { sql } from "drizzle-orm";
 import { adminUsers, siteSettings, staff } from "@/db/schema";
 import { signStaffToken } from "@/lib/auth/jwt";
 
@@ -43,7 +44,8 @@ export async function POST(request: NextRequest) {
     // it is never returned by this endpoint or exposed to the browser.
     const authSecret = randomBytes(48).toString("base64url");
     const created = await db.transaction(async (tx) => {
-      // Recheck inside the transaction to avoid two simultaneous first-run requests.
+      // Serialize first-run requests across all application instances.
+      await tx.execute(sql`SELECT pg_advisory_xact_lock(73199421)`);
       const managers = await tx.select({ id: staff.id }).from(staff).limit(1);
       if (managers.length > 0) throw new Error("SETUP_COMPLETE");
 
