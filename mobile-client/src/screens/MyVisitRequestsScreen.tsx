@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { Feather } from "@expo/vector-icons";
 import {
   View,
   Text,
@@ -95,7 +96,7 @@ export default function MyVisitRequestsScreen() {
                 </View>
                 {r.appointmentDate && (
                   <View style={styles.appointBox}>
-                    <Text style={styles.appointTitle}>✓ Appointment</Text>
+                    <Text style={styles.appointTitle}><Feather name="check" size={14} color={colors.success} /> Appointment</Text>
                     <Text style={styles.appointDate}>
                       {new Date(r.appointmentDate).toLocaleString()}
                     </Text>

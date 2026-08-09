@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { Feather } from "@expo/vector-icons";
 import { View, Text, TouchableOpacity, Alert } from "react-native";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Screen, Card, Header, Field, Button, EmptyState, Loading } from "../components/ui";
@@ -59,7 +60,7 @@ export default function AppointmentsScreen() {
             <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
               <Text style={[typography.h3, { color: theme.text }]}>{a.name}</Text>
               <TouchableOpacity onPress={() => delMut.mutate(a.id)}>
-                <Text style={{ color: theme.danger }}>🗑</Text>
+                <Feather name="trash-2" size={18} color={theme.danger} />
               </TouchableOpacity>
             </View>
             <Text style={[typography.small, { color: theme.textMuted, marginTop: 2 }]}>

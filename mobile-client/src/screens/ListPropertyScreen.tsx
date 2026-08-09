@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { Feather } from "@expo/vector-icons";
 import {
   View,
   Text,
@@ -224,7 +225,7 @@ export default function ListPropertyScreen() {
           <View>
             {profileCompleted && (
               <Text style={{ color: "#10b981", marginBottom: spacing.sm }}>
-                ✓ Profile already complete
+                <Feather name="check" size={14} color="#10b981" /> Profile already complete
               </Text>
             )}
             <Input
@@ -457,7 +458,7 @@ export default function ListPropertyScreen() {
 
             <View style={styles.commitBox}>
               <Text style={styles.commitText}>
-                ⚠️ COMMITMENT: I will immediately remove this listing if the property
+                <Feather name="alert-triangle" size={12} color={colors.danger} /> COMMITMENT: I will immediately remove this listing if the property
                 is sold, rented, or withdrawn. If a visit is requested and the
                 property is unavailable, my account will be blocked and all my
                 listings deleted.

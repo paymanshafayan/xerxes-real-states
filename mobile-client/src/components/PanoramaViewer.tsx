@@ -1,4 +1,5 @@
 import React, { useRef, useState } from "react";
+import { Feather } from "@expo/vector-icons";
 import { View, Image, PanResponder, StyleSheet, Dimensions, Text } from "react-native";
 import { colors, radius, typography } from "../theme";
 
@@ -41,7 +42,7 @@ export function PanoramaViewer({ imageUri, label }: { imageUri: string; label?: 
         />
       </View>
       <View style={styles.hint}>
-        <Text style={[typography.small, { color: "#fff" }]}>👆 {label}</Text>
+        <Text style={[typography.small, { color: "#fff" }]}><Feather name="move" size={14} color="#fff" /> {label}</Text>
       </View>
     </View>
   );

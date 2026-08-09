@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
+import { Feather } from "@expo/vector-icons";
 import {
   View,
   Text,
@@ -178,7 +179,7 @@ export default function ChatThreadScreen() {
               >
                 {m.type === "audio" && m.mediaUrl ? (
                   <Text style={{ color: mine ? "#fff" : theme.text }}>
-                    🎤 {m.durationSec || ""}s
+                    <Feather name="mic" size={12} color={mine ? "#fff" : theme.text} /> {m.durationSec || ""}s
                   </Text>
                 ) : (
                   <Text style={{ color: mine ? "#fff" : theme.text }}>{m.message}</Text>
@@ -218,10 +219,10 @@ export default function ChatThreadScreen() {
           style={[typography.body, { flex: 1, color: theme.text, paddingHorizontal: spacing.sm }]}
         />
         <TouchableOpacity onPress={pickImage} style={{ padding: spacing.sm }}>
-          <Text style={{ color: theme.accent }}>🖼️</Text>
+          <Feather name="image" size={22} color={theme.accent} />
         </TouchableOpacity>
         <TouchableOpacity onPressIn={startAudio} onPressOut={stopAudio} style={{ padding: spacing.sm }}>
-          <Text style={{ color: isRecording ? theme.danger : theme.accent }}>🎤</Text>
+          <Feather name="mic" size={22} color={isRecording ? theme.danger : theme.accent} />
         </TouchableOpacity>
         <TouchableOpacity onPress={sendText} style={{ padding: spacing.sm }}>
           <Text style={{ color: theme.primary }}>{t("send")}</Text>

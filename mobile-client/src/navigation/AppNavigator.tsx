@@ -1,7 +1,7 @@
 import React from "react";
+import { Feather } from "@expo/vector-icons";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
-import { Text } from "react-native";
 import HomeScreen from "../screens/HomeScreen";
 import SearchScreen from "../screens/SearchScreen";
 import PriceDropsScreen from "../screens/PriceDropsScreen";
@@ -72,8 +72,10 @@ function MoreStack() {
   );
 }
 
-function TabIcon({ emoji }: { emoji: string }) {
-  return <Text style={{ fontSize: 20 }}>{emoji}</Text>;
+function tabIcon(icon: keyof typeof Feather.glyphMap) {
+  return ({ color, size }: { color: string; size: number }) => (
+    <Feather name={icon} size={size} color={color} />
+  );
 }
 
 export default function AppNavigator() {
@@ -92,29 +94,29 @@ export default function AppNavigator() {
       <Tab.Screen
         name="HomeTab"
         component={HomeStack}
-        options={{ title: t("tabHome"), tabBarIcon: () => <TabIcon emoji="🏠" /> }}
+        options={{ title: t("tabHome"), tabBarIcon: tabIcon("home") }}
       />
       <Tab.Screen
         name="SearchTab"
         component={SearchStack}
-        options={{ title: t("tabSearch"), tabBarIcon: () => <TabIcon emoji="🔍" /> }}
+        options={{ title: t("tabSearch"), tabBarIcon: tabIcon("search") }}
       />
       <Tab.Screen
         name="PriceDropsTab"
         component={PriceDropsStack}
-        options={{ title: t("tabPriceDrops"), tabBarIcon: () => <TabIcon emoji="📉" /> }}
+        options={{ title: t("tabPriceDrops"), tabBarIcon: tabIcon("trending-down") }}
       />
       <Tab.Screen
         name="ChatTab"
         component={ChatScreen}
-        options={{ title: t("tabChat"), tabBarIcon: () => <TabIcon emoji="💬" /> }}
+        options={{ title: t("tabChat"), tabBarIcon: tabIcon("message-circle") }}
       />
       <Tab.Screen
         name="MoreTab"
         component={MoreStack}
         options={{
           title: t("tabMore"),
-          tabBarIcon: () => <TabIcon emoji="⚙️" />,
+          tabBarIcon: tabIcon("settings"),
           tabBarBadge: favoritesCount > 0 ? favoritesCount : undefined,
         }}
       />

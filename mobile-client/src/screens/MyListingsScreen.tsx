@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { Feather } from "@expo/vector-icons";
 import {
   View,
   Text,
@@ -132,11 +133,11 @@ export default function MyListingsScreen() {
                   <View style={styles.row}>
                     {cover ? (
                       <View style={styles.thumb}>
-                        <Text style={styles.thumbEmoji}>🏠</Text>
+                        <Feather name="home" size={22} color={colors.textMuted} />
                       </View>
                     ) : (
                       <View style={[styles.thumb, styles.thumbEmpty]}>
-                        <Text>🏠</Text>
+                        <Feather name="home" size={22} color={colors.textMuted} />
                       </View>
                     )}
                     <View style={{ flex: 1, marginLeft: spacing.sm }}>

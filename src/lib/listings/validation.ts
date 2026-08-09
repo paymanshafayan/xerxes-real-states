@@ -61,7 +61,7 @@ export const listingCreateSchema = z
 
     // Step 7 - commitment
     commitmentAccepted: z.literal(true, {
-      errorMap: () => ({ message: "پذیرش تعهد الزامی است" }),
+      message: "پذیرش تعهد الزامی است",
     }),
   })
   .superRefine((data, ctx) => {

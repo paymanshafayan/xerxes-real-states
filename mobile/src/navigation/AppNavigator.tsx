@@ -1,5 +1,5 @@
 import React from "react";
-import { View, Text } from "react-native";
+import { Feather } from "@expo/vector-icons";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { useAuthStore } from "../store/auth";
@@ -99,15 +99,15 @@ function ManagerTabs() {
         tabBarInactiveTintColor: theme.textMuted,
       }}
     >
-      <Tab.Screen name="DashboardT" component={DashboardStack} options={{ title: t("dashboard"), tabBarIcon: icon("🏠") }} />
-      <Tab.Screen name="PropertiesT" component={PropertiesStack} options={{ title: t("properties"), tabBarIcon: icon("🏢") }} />
-      <Tab.Screen name="AppointmentsT" component={AppointmentsStack} options={{ title: t("appointments"), tabBarIcon: icon("📅") }} />
-      <Tab.Screen name="LeadsT" component={LeadsStack} options={{ title: t("leads"), tabBarIcon: icon("🎯") }} />
-      <Tab.Screen name="InquiriesT" component={InquiriesStack} options={{ title: t("inquiries"), tabBarIcon: icon("📥") }} />
-      <Tab.Screen name="ActivityT" component={ActivityScreen} options={{ title: t("activity"), tabBarIcon: icon("📊") }} />
-      <Tab.Screen name="ChatT" component={ChatStack} options={{ title: t("chat"), tabBarIcon: icon("💬") }} />
-      <Tab.Screen name="ProfileT" component={ProfileStack} options={{ title: t("profile"), tabBarIcon: icon("👤") }} />
-      <Tab.Screen name="SearchT" component={SearchScreen} options={{ title: t("search"), tabBarIcon: icon("🔍") }} />
+      <Tab.Screen name="DashboardT" component={DashboardStack} options={{ title: t("dashboard"), tabBarIcon: icon("home") }} />
+      <Tab.Screen name="PropertiesT" component={PropertiesStack} options={{ title: t("properties"), tabBarIcon: icon("grid") }} />
+      <Tab.Screen name="AppointmentsT" component={AppointmentsStack} options={{ title: t("appointments"), tabBarIcon: icon("calendar") }} />
+      <Tab.Screen name="LeadsT" component={LeadsStack} options={{ title: t("leads"), tabBarIcon: icon("target") }} />
+      <Tab.Screen name="InquiriesT" component={InquiriesStack} options={{ title: t("inquiries"), tabBarIcon: icon("inbox") }} />
+      <Tab.Screen name="ActivityT" component={ActivityScreen} options={{ title: t("activity"), tabBarIcon: icon("bar-chart-2") }} />
+      <Tab.Screen name="ChatT" component={ChatStack} options={{ title: t("chat"), tabBarIcon: icon("message-circle") }} />
+      <Tab.Screen name="ProfileT" component={ProfileStack} options={{ title: t("profile"), tabBarIcon: icon("user") }} />
+      <Tab.Screen name="SearchT" component={SearchScreen} options={{ title: t("search"), tabBarIcon: icon("search") }} />
     </Tab.Navigator>
   );
 }
@@ -123,21 +123,19 @@ function ConsultantTabs() {
         tabBarInactiveTintColor: theme.textMuted,
       }}
     >
-      <Tab.Screen name="MyPropertiesT" component={PropertiesStack} options={{ title: t("myProperties"), tabBarIcon: icon("🏢") }} />
-      <Tab.Screen name="MyLeadsT" component={LeadsStack} options={{ title: t("leads"), tabBarIcon: icon("🎯") }} />
-      <Tab.Screen name="MyInquiriesT" component={InquiriesStack} options={{ title: t("inquiries"), tabBarIcon: icon("📥") }} />
-      <Tab.Screen name="MyChatT" component={ChatStack} options={{ title: t("chat"), tabBarIcon: icon("💬") }} />
-      <Tab.Screen name="MyProfileT" component={ProfileStack} options={{ title: t("profile"), tabBarIcon: icon("👤") }} />
-      <Tab.Screen name="MySearchT" component={SearchScreen} options={{ title: t("search"), tabBarIcon: icon("🔍") }} />
+      <Tab.Screen name="MyPropertiesT" component={PropertiesStack} options={{ title: t("myProperties"), tabBarIcon: icon("grid") }} />
+      <Tab.Screen name="MyLeadsT" component={LeadsStack} options={{ title: t("leads"), tabBarIcon: icon("target") }} />
+      <Tab.Screen name="MyInquiriesT" component={InquiriesStack} options={{ title: t("inquiries"), tabBarIcon: icon("inbox") }} />
+      <Tab.Screen name="MyChatT" component={ChatStack} options={{ title: t("chat"), tabBarIcon: icon("message-circle") }} />
+      <Tab.Screen name="MyProfileT" component={ProfileStack} options={{ title: t("profile"), tabBarIcon: icon("user") }} />
+      <Tab.Screen name="MySearchT" component={SearchScreen} options={{ title: t("search"), tabBarIcon: icon("search") }} />
     </Tab.Navigator>
   );
 }
 
-function icon(emoji: string) {
-  return () => (
-    <View>
-      <Text style={{ fontSize: 20 }}>{emoji}</Text>
-    </View>
+function icon(name: keyof typeof Feather.glyphMap) {
+  return ({ color, size }: { color: string; size: number }) => (
+    <Feather name={name} size={size} color={color} />
   );
 }
 

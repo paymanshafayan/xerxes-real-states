@@ -66,7 +66,7 @@ function generateSlug(title: string): string {
   return `${base}-${random}`;
 }
 
-async function recordStatusChange(params: {
+export async function recordStatusChange(params: {
   listingId: number;
   fromStatus: string | null;
   toStatus: string;

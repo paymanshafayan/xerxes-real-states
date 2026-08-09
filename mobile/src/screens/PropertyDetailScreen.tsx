@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { Feather } from "@expo/vector-icons";
 import { View, Text, ScrollView, TouchableOpacity, Image, Alert } from "react-native";
 import { useRoute, useNavigation } from "@react-navigation/native";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -64,7 +65,7 @@ export default function PropertyDetailScreen() {
 
       {(p.panoramas?.length ?? 0) > 0 && (
         <Card style={{ marginBottom: spacing.md }}>
-          <Text style={[typography.h3, { color: theme.text, marginBottom: 8 }]}>🌐 {t("panorama360")}</Text>
+          <Text style={[typography.h3, { color: theme.text, marginBottom: 8 }]}><Feather name="globe" size={16} color={theme.text} /> {t("panorama360")}</Text>
           <ScrollView horizontal showsHorizontalScrollIndicator={false}>
             {p.panoramas.map((u, i) => (
               <Image
@@ -89,7 +90,7 @@ export default function PropertyDetailScreen() {
         </Text>
         {(p.panoramas?.length ?? 0) > 0 && (
           <Text style={[typography.caption, { color: theme.accent, marginTop: 6 }]}>
-            🌐 {p.panoramas.length} {t("panorama360")}
+            <Feather name="globe" size={12} color={theme.accent} /> {p.panoramas.length} {t("panorama360")}
           </Text>
         )}
       </Card>
@@ -112,7 +113,7 @@ export default function PropertyDetailScreen() {
               style={{ paddingVertical: 8 }}
               onPress={() => setPlaying(playing === a ? null : a)}
             >
-              <Text style={{ color: theme.primary }}>🎤 {playing === a ? t("pause") || "Pause" : t("play") || "Play"}</Text>
+              <Text style={{ color: theme.primary }}><Feather name="mic" size={14} color={theme.primary} /> {playing === a ? t("pause") || "Pause" : t("play") || "Play"}</Text>
               {playing === a && <AudioPlayer uri={abs(a)!} />}
             </TouchableOpacity>
           ))}

@@ -1,4 +1,4 @@
-import AdminShell from "@/components/admin/AdminShell";
+import AdminPageLayout from "@/components/admin/AdminPageLayout";
 import UserListingsManager from "@/components/admin/UserListingsManager";
 
 export const metadata = {
@@ -7,8 +7,8 @@ export const metadata = {
 
 export default function AdminUserListingsPage() {
   return (
-    <AdminShell>
+    <AdminPageLayout title="آگهی‌های کاربران" backHref="/admin">
       <UserListingsManager />
-    </AdminShell>
+    </AdminPageLayout>
   );
 }

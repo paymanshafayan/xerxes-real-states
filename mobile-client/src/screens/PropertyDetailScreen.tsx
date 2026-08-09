@@ -12,6 +12,7 @@ import {
 } from "react-native";
 import { useQuery } from "@tanstack/react-query";
 import { useRoute, useNavigation } from "@react-navigation/native";
+import { Ionicons, Feather } from "@expo/vector-icons";
 import WebView from "react-native-webview";
 import { fetchPropertyById, fetchAgentById, sendInquiry } from "../api/properties";
 import { PanoramaViewer } from "../components/PanoramaViewer";
@@ -110,7 +111,7 @@ export default function PropertyDetailScreen() {
                 {localizedField(property, "title", locale)}
               </Text>
               <Text onPress={() => toggle(property.id)} style={styles.favIcon}>
-                {favorite ? "❤️" : "🤍"}
+                <Ionicons name={favorite ? "heart" : "heart-outline"} size={24} color={favorite ? colors.danger : colors.textMuted} />
               </Text>
             </View>
 
@@ -181,7 +182,7 @@ export default function PropertyDetailScreen() {
                   Linking.openURL(`https://www.google.com/maps/search/?api=1&query=${property.lat},${property.lng}`)
                 }
               >
-                📍 {t("viewOnMap")}
+                <Feather name="map-pin" size={14} color={colors.textMuted} /> {t("viewOnMap")}
               </Text>
             </Card>
 

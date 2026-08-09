@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { Feather } from "@expo/vector-icons";
 import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
 import * as ImagePicker from "expo-image-picker";
 import * as DocumentPicker from "expo-document-picker";
@@ -154,10 +155,10 @@ export default function MediaCapture({
           </Text>
         </TouchableOpacity>
         <TouchableOpacity style={[styles.btn, { borderColor: theme.border }]} onPress={captureDocument}>
-          <Text style={[styles.btnLabel, { color: theme.text }]}>📄 {t("scanDocument") || "Scan"}</Text>
+          <Text style={[styles.btnLabel, { color: theme.text }]}><Feather name="file-text" size={14} color={theme.text} /> {t("scanDocument") || "Scan"}</Text>
         </TouchableOpacity>
         <TouchableOpacity style={[styles.btn, { borderColor: theme.border }]} onPress={pickDocument}>
-          <Text style={[styles.btnLabel, { color: theme.text }]}>📎 {t("pickDocument") || "File"}</Text>
+          <Text style={[styles.btnLabel, { color: theme.text }]}><Feather name="paperclip" size={14} color={theme.text} /> {t("pickDocument") || "File"}</Text>
         </TouchableOpacity>
       </View>
 
