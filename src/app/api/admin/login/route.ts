@@ -20,35 +20,12 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Check for default admin (first-time access)
+    // Initial credentials can only be created through the one-time /setup flow.
     const users = await db.select().from(adminUsers).limit(1);
-
     if (users.length === 0) {
-      // Create default admin on first login attempt
-      if (username === "admin" && password === "admin123") {
-        const hash = await bcrypt.hash("admin123", 10);
-        await db.insert(adminUsers).values({
-          username: "admin",
-          passwordHash: hash,
-        });
-        await logActivity({ action: "login", entity: "admin", userName: "admin", details: "First-time admin login" });
-        const [newUser] = await db
-          .select()
-          .from(adminUsers)
-          .where(eq(adminUsers.username, "admin"))
-          .limit(1);
-        const token = await signStaffToken({
-          id: newUser.id,
-          username: "admin",
-          role: "manager",
-          name: "Administrator",
-          agentId: null,
-        });
-        return NextResponse.json({ success: true, token });
-      }
       return NextResponse.json(
-        { error: "Invalid credentials" },
-        { status: 401 }
+        { error: "Initial setup is required. Open /setup to create the first manager." },
+        { status: 403 }
       );
     }
 

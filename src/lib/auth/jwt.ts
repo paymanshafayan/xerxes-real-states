@@ -1,4 +1,5 @@
 import { SignJWT, jwtVerify } from "jose";
+import { getConfigValue } from "@/lib/runtimeConfig";
 
 export interface StaffJwtPayload {
   id: number;
@@ -20,13 +21,14 @@ const USER_AUDIENCE = "xerxes-web-user";
  * Validating this at module scope makes a production build depend on a runtime
  * secret, even though that secret is normally injected only when the app starts.
  */
-function getSecret(): Uint8Array {
-  const authSecret = process.env.AUTH_SECRET;
+async function getSecret(): Promise<Uint8Array> {
+  // The setup wizard stores this private value in the database. An environment
+  // value is retained as a deployment-time fallback for existing installations.
+  const authSecret = await getConfigValue("auth_secret");
 
   if (!authSecret && process.env.NODE_ENV === "production") {
     throw new Error(
-      "AUTH_SECRET environment variable is required in production. " +
-        "Generate one with `openssl rand -base64 48` and set it before starting the app."
+      "Authentication has not been configured. Complete the initial setup at /setup."
     );
   }
 
@@ -52,7 +54,7 @@ export async function signStaffToken(
     .setAudience(AUDIENCE)
     .setIssuedAt()
     .setExpirationTime(`${expiresInSeconds}s`)
-    .sign(getSecret());
+    .sign(await getSecret());
 }
 
 export async function verifyStaffToken(
@@ -60,7 +62,7 @@ export async function verifyStaffToken(
 ): Promise<StaffJwtPayload | null> {
   // Resolve outside the try block so a missing production secret is never
   // mistaken for an invalid token.
-  const secret = getSecret();
+  const secret = await getSecret();
   try {
     const { payload } = await jwtVerify(token, secret, {
       issuer: ISSUER,
@@ -96,7 +98,7 @@ export async function signUserToken(
     .setAudience(USER_AUDIENCE)
     .setIssuedAt()
     .setExpirationTime(`${expiresInSeconds}s`)
-    .sign(getSecret());
+    .sign(await getSecret());
 }
 
 export async function verifyUserToken(
@@ -104,7 +106,7 @@ export async function verifyUserToken(
 ): Promise<UserJwtPayload | null> {
   // Resolve outside the try block so a missing production secret is never
   // mistaken for an invalid token.
-  const secret = getSecret();
+  const secret = await getSecret();
   try {
     const { payload } = await jwtVerify(token, secret, {
       issuer: ISSUER,

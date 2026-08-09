@@ -3,6 +3,7 @@ import GoogleAnalytics from "@/components/GoogleAnalytics";
 import { getConfigValue } from "@/lib/runtimeConfig";
 import { getStaticContentSection } from "@/lib/staticContent";
 import { SiteContentProvider } from "@/components/SiteContentProvider";
+import SetupGate from "@/components/SetupGate";
 import "./globals.css";
 
 const DEFAULT_TITLE = "Xerxes Real Estate | Buy, Rent & Invest in Northern Cyprus";
@@ -127,6 +128,7 @@ export default async function RootLayout({
         <meta name="apple-mobile-web-app-title" content="Xerxes" />
       </head>
       <body className="min-h-screen bg-white antialiased">
+        <SetupGate />
         <GoogleAnalytics measurementId={gaId} />
         <SiteContentProvider content={siteContent}>{children}</SiteContentProvider>
       </body>

@@ -19,35 +19,6 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // First-run bootstrap: create a default manager when table is empty.
-    const existing = await db.select().from(staff).limit(1);
-    if (existing.length === 0) {
-      const defUser = process.env.DEFAULT_MANAGER_USER || "manager";
-      const defPass = process.env.DEFAULT_MANAGER_PASS || "manager123";
-      if (username === defUser && password === defPass) {
-        const hash = await bcrypt.hash(defPass, 10);
-        const [created] = await db
-          .insert(staff)
-          .values({
-            username: defUser,
-            email: process.env.DEFAULT_MANAGER_EMAIL || "manager@xerxes.com",
-            passwordHash: hash,
-            name: "Site Manager",
-            role: "manager",
-            status: "active",
-            permissions: ["*"],
-          })
-          .returning();
-        await logActivity({
-          action: "login",
-          entity: "admin",
-          userName: defUser,
-          details: "First-time manager login (auto-created)",
-        });
-        return await issueToken(created);
-      }
-      return NextResponse.json({ error: "Invalid credentials" }, { status: 401 });
-    }
 
     const user = await db
       .select()
