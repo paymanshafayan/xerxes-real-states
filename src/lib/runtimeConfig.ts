@@ -33,6 +33,21 @@ async function getStoredApiKeys(): Promise<Record<string, string>> {
  * variable of the same name.
  */
 export async function getConfigValue(envKey: string): Promise<string | undefined> {
+  // Authentication is created by the one-time setup wizard and must not be
+  // grouped with user-editable third-party API keys.
+  if (envKey === "auth_secret") {
+    try {
+      const rows = await db
+        .select({ value: siteSettings.value })
+        .from(siteSettings)
+        .where(eq(siteSettings.key, "auth_secret"))
+        .limit(1);
+      if (rows[0]?.value) return rows[0].value;
+    } catch {
+      // During build / before setup, continue to environment fallback.
+    }
+  }
+
   const stored = await getStoredApiKeys();
   const fromDb = stored[envKey];
   if (fromDb && fromDb.trim()) return fromDb;

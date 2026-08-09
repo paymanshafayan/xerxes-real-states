@@ -10,6 +10,8 @@
     "test": "jest --forceExit"
   },
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.1106.0",
+    "@aws-sdk/s3-request-presigner": "^3.1106.0",
     "@jest/types": "^30.4.1",
     "@tailwindcss/postcss": "4.1.17",
     "@testing-library/jest-dom": "^7.0.0",
