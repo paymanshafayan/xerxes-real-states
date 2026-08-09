@@ -66,7 +66,7 @@ export default function SetupPage() {
           <Field label="Full name" value={form.name} onChange={(name) => setForm({ ...form, name })} autoComplete="name" />
           <Field label="Email" type="email" value={form.email} onChange={(email) => setForm({ ...form, email })} autoComplete="email" />
           <Field label="Username" value={form.username} onChange={(username) => setForm({ ...form, username })} autoComplete="username" hint="Letters, numbers, dot, underscore and dash only." />
-          <Field label="Password" type="password" value={form.password} onChange={(password) => setForm({ ...form, password })} autoComplete="new-password" hint="At least 12 characters." />
+          <Field label="Password" type="password" value={form.password} onChange={(password) => setForm({ ...form, password })} autoComplete="new-password" hint="At least 10 characters." />
           <Field label="Confirm password" type="password" value={form.confirmPassword} onChange={(confirmPassword) => setForm({ ...form, confirmPassword })} autoComplete="new-password" />
           {error && <p role="alert" className="rounded-lg bg-red-950 px-3 py-2 text-sm text-red-200">{error}</p>}
           <button disabled={submitting} className="w-full rounded-lg bg-blue-600 px-4 py-3 font-semibold text-white transition hover:bg-blue-500 disabled:cursor-not-allowed disabled:opacity-60">
