@@ -36,7 +36,7 @@ psql "$DATABASE_URL" -f ../drizzle/0003_price_drop_tracking.sql
 This adds `properties.previous_price`, set automatically whenever a staff member lowers a property's price.
 
 ## Production builds
-Set a real `EXPO_PUBLIC_API_URL` in `eas.json` (currently a placeholder) before running `eas build` — the default `http://localhost:3000` in `app.json` only works for local development and will not reach your deployed backend from a real device.
+Set a real `EXPO_PUBLIC_API_URL` in `eas.json` before running `eas build` — the default in `app.json` is `https://xerxes.biz` (production). For local development, override with your LAN IP, e.g. `export EXPO_PUBLIC_API_URL=http://192.168.1.50:3000`.
 
 ## Scope notes (deliberately not included, to avoid over-claiming)
 - No push notifications (no login/account to tie a push token to — chat replies rely on polling, same as the website's guest chat).

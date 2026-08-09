@@ -2,6 +2,19 @@
 
 import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+
+function LinkRedirectTo({ href }: { href: string }) {
+  const router = useRouter();
+  useEffect(() => {
+    router.push(href);
+  }, [href, router]);
+  return (
+    <div className="flex items-center justify-center py-12 text-gray-400">
+      در حال انتقال...
+    </div>
+  );
+}
 import {
   LayoutDashboard,
   Home,
@@ -29,6 +42,9 @@ import {
   Database,
   Smartphone,
   RefreshCw,
+  Megaphone,
+  Calendar,
+  Lock,
 } from "lucide-react";
 import AdminDashboardHome from "./AdminDashboardHome";
 import AdminHelpGuide from "./AdminHelpGuide";
@@ -70,12 +86,15 @@ const sidebarItems = [
   { id: "content", icon: Palette, label: "Content" },
   { id: "app_downloads", icon: Smartphone, label: "App Downloads" },
   { id: "properties", icon: Home, label: "Properties" },
+  { id: "user_listings", icon: Megaphone, label: "User Listings" },
+  { id: "visit_requests", icon: Calendar, label: "Visit Requests" },
   { id: "agents", icon: Users, label: "Agents" },
   { id: "inquiries", icon: MessageSquare, label: "Inquiries" },
   { id: "live_chat", icon: MessageSquare, label: "Live Chat" },
   { id: "crm", icon: Briefcase, label: "CRM" },
   { id: "analytics", icon: BarChart3, label: "Analytics" },
   { id: "users", icon: UserCheck, label: "Users" },
+  { id: "blocked_users", icon: Lock, label: "Blocked Users" },
   { id: "activity", icon: Activity, label: "Activity Log" },
   { id: "api_keys", icon: Key, label: "API Keys" },
   { id: "settings", icon: Settings, label: "Settings" },
@@ -763,6 +782,9 @@ export default function AdminShell() {
           {activeTab === "crm" && <CRMManager />}
           {activeTab === "analytics" && <AnalyticsDashboard />}
           {activeTab === "users" && <UsersManager />}
+          {activeTab === "blocked_users" && <LinkRedirectTo href="/admin/blocked-users" />}
+          {activeTab === "user_listings" && <LinkRedirectTo href="/admin/user-listings" />}
+          {activeTab === "visit_requests" && <LinkRedirectTo href="/admin/visit-requests" />}
           {activeTab === "activity" && <ActivityLogComponent />}
           {activeTab === "api_keys" && <AdminApiKeys />}
 

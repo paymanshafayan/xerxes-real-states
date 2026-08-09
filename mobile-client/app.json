@@ -21,7 +21,7 @@
       "permissions": []
     },
     "extra": {
-      "apiUrl": "http://localhost:3000",
+      "apiUrl": "https://xerxes.biz",
       "eas": {
         "projectId": "00000000-0000-0000-0000-000000000000"
       }
