@@ -10,6 +10,8 @@ export interface StoreLink {
 export interface AppDownloadConfig {
   apkUrl?: string;
   apkName?: string;
+  /** R2 object key, kept private to the admin UI so an uploaded package can be removed. */
+  apkKey?: string;
   stores: StoreLink[];
 }
 
@@ -21,6 +23,7 @@ export function parseAppDownloadConfig(value: unknown): AppDownloadConfig {
   return {
     apkUrl: typeof raw.apkUrl === "string" ? raw.apkUrl : undefined,
     apkName: typeof raw.apkName === "string" ? raw.apkName : undefined,
+    apkKey: typeof raw.apkKey === "string" ? raw.apkKey : undefined,
     stores: Array.isArray(raw.stores)
       ? raw.stores.filter((item): item is StoreLink =>
           !!item && typeof item.id === "string" && typeof item.label === "string" &&

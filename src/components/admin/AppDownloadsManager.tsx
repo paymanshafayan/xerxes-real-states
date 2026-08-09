@@ -60,11 +60,17 @@ export default function AppDownloadsManager() {
       const form = new FormData(); form.append("app", active); form.append("file", file);
       const response = await adminFetch("/api/admin/app-downloads/upload", { method: "POST", body: form });
       const body = await response.json(); if (!response.ok) throw new Error(body.error);
-      await save({ ...configs[active], apkUrl: body.url, apkName: body.name });
+      const current = configs[active];
+      await save({ ...current, apkUrl: body.url, apkName: body.name, apkKey: body.key });
+      if (current.apkKey) await adminFetch("/api/admin/app-downloads/upload", { method: "DELETE", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ key: current.apkKey }) });
     } catch (err) { setError(err instanceof Error ? err.message : "APK upload failed."); }
     finally { setUploading(false); }
   };
-  const removeApk = async () => save({ ...configs[active], apkUrl: undefined, apkName: undefined });
+  const removeApk = async () => {
+    const current = configs[active];
+    await save({ ...current, apkUrl: undefined, apkName: undefined, apkKey: undefined });
+    if (current.apkKey) await adminFetch("/api/admin/app-downloads/upload", { method: "DELETE", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ key: current.apkKey }) });
+  };
 
   const config = configs[active] || EMPTY_APP_DOWNLOAD_CONFIG;
   if (loading) return <div className="py-16 flex justify-center"><Loader2 className="animate-spin text-primary" /></div>;
@@ -73,7 +79,7 @@ export default function AppDownloadsManager() {
     <div className="flex gap-2 border-b border-gray-200">{(["client", "staff"] as AppKind[]).map((app) => <button key={app} onClick={() => { setActive(app); setError(""); }} className={`px-4 py-2.5 text-sm font-semibold border-b-2 ${active === app ? "border-primary text-primary" : "border-transparent text-gray-500"}`}><Smartphone className="inline w-4 h-4 mr-2" />{names[app]}</button>)}</div>
     {active === "staff" && <div className="rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">Staff distribution is not shown on the public website. Use this APK link only from the protected admin area.</div>}
     {error && <p className="rounded-lg bg-red-50 p-3 text-sm text-red-700">{error}</p>}
-    <section className="bg-white border border-gray-200 rounded-2xl p-5 space-y-4"><div><h3 className="font-semibold text-gray-900">Direct Android APK</h3><p className="text-xs text-gray-500 mt-1">Upload a signed APK (max 200 MB). This replaces the current direct-download file.</p></div>
+    <section className="bg-white border border-gray-200 rounded-2xl p-5 space-y-4"><div><h3 className="font-semibold text-gray-900">Direct Android APK</h3><p className="text-xs text-gray-500 mt-1">Upload a signed APK (max 200 MB). It is stored in the configured public R2 bucket and replaces the current direct-download file.</p></div>
       {config.apkUrl ? <div className="flex flex-wrap items-center gap-3 rounded-lg bg-gray-50 p-3 text-sm"><Download className="w-4 h-4 text-primary" /><a className="text-primary hover:underline" href={config.apkUrl} target="_blank" rel="noreferrer">{config.apkName || "Current APK"}</a><button onClick={removeApk} disabled={saving} className="ml-auto text-red-600 hover:text-red-800"><Trash2 className="w-4 h-4" /></button></div> : <p className="text-sm text-gray-500">No APK uploaded.</p>}
       <label className="inline-flex items-center gap-2 cursor-pointer px-4 py-2.5 bg-primary text-white text-sm font-semibold rounded-lg hover:bg-primary-dark"><Upload className="w-4 h-4" />{uploading ? "Uploading…" : "Upload APK"}<input type="file" accept=".apk,application/vnd.android.package-archive" className="hidden" disabled={uploading} onChange={(event) => uploadApk(event.target.files?.[0])} /></label>
     </section>

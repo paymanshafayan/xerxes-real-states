@@ -32,7 +32,7 @@ function extOf(name: string): string {
   return ALLOWED_EXTENSIONS.has(safe) ? safe : "bin";
 }
 
-function isR2Configured(): boolean {
+export function isR2Configured(): boolean {
   return Boolean(
     process.env.R2_ACCOUNT_ID &&
       process.env.R2_ACCESS_KEY_ID &&
