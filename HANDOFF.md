@@ -17,6 +17,7 @@ npm run dev                  # Next.js on :3000
 
 # Mobile (separate folder)
 cd mobile && npm install
+# Production: defaults to https://xerxes.biz. Override for local dev:
 EXPO_PUBLIC_API_URL=http://<LAN_IP>:3000 npx expo start
 ```
 
