@@ -3,7 +3,7 @@ import { db } from "@/db";
 import { properties } from "@/db/schema";
 import { eq } from "drizzle-orm";
 import { requireStaff } from "@/lib/auth/session";
-import { updateProperty, deleteProperty } from "@/lib/data/dataProvider";
+import { updateProperty, deleteProperty, getPropertyById } from "@/lib/data/dataProvider";
 import { logActivity } from "@/lib/activityLog";
 
 // GET single property (staff scoped)
@@ -15,18 +15,13 @@ export async function GET(
   if (auth instanceof NextResponse) return auth;
   try {
     const { id } = await params;
-    const rows = await db
-      .select()
-      .from(properties)
-      .where(eq(properties.id, Number(id)))
-      .limit(1);
-    if (rows.length === 0)
+    const property = await getPropertyById(Number(id));
+    if (!property)
       return NextResponse.json({ error: "Not found" }, { status: 404 });
-    const row = rows[0];
-    if (auth.role === "consultant" && auth.agentId && row.agentId !== auth.agentId) {
+    if (auth.role === "consultant" && auth.agentId && property.agentId !== auth.agentId) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
-    return NextResponse.json({ property: row });
+    return NextResponse.json({ property });
   } catch (error) {
     console.error("Staff get property error:", error);
     return NextResponse.json({ error: "Failed" }, { status: 500 });
