@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, useState } from "react";
+import { FormEvent, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 
 export default function SetupPage() {
@@ -8,6 +8,14 @@ export default function SetupPage() {
   const [form, setForm] = useState({ databaseUrl: "", username: "", name: "", email: "", password: "", confirmPassword: "" });
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const [databaseConfigured, setDatabaseConfigured] = useState<boolean | null>(null);
+
+  useEffect(() => {
+    fetch("/api/setup", { cache: "no-store" })
+      .then((response) => response.json())
+      .then((state) => setDatabaseConfigured(Boolean(state.databaseConfigured)))
+      .catch(() => setDatabaseConfigured(false));
+  }, []);
 
   async function submit(event: FormEvent) {
     event.preventDefault();
@@ -43,10 +51,18 @@ export default function SetupPage() {
         <p className="mb-2 text-sm font-semibold uppercase tracking-[0.2em] text-blue-400">Xerxes Real Estate</p>
         <h1 className="text-3xl font-bold">Initial setup</h1>
         <p className="mt-3 text-sm leading-6 text-slate-300">
-          Connect your Railway PostgreSQL database, then create the first manager. A secure authentication secret is generated automatically.
+          Create the first manager. A secure authentication secret is generated automatically.
         </p>
         <form onSubmit={submit} className="mt-7 space-y-4">
-          <Field label="PostgreSQL connection URL" type="password" value={form.databaseUrl} onChange={(databaseUrl) => setForm({ ...form, databaseUrl })} autoComplete="off" hint="Paste Railway’s DATABASE_URL. It is stored only in the attached protected Volume." />
+          {databaseConfigured === true ? (
+            <p className="rounded-lg bg-emerald-950 px-3 py-2.5 text-sm text-emerald-200">
+              PostgreSQL connection detected from Railway configuration.
+            </p>
+          ) : databaseConfigured === false ? (
+            <Field label="PostgreSQL connection URL" type="password" value={form.databaseUrl} onChange={(databaseUrl) => setForm({ ...form, databaseUrl })} autoComplete="off" hint="Paste Railway’s DATABASE_URL. It is stored only in the attached protected Volume." />
+          ) : (
+            <p className="text-sm text-slate-400">Checking database configuration…</p>
+          )}
           <Field label="Full name" value={form.name} onChange={(name) => setForm({ ...form, name })} autoComplete="name" />
           <Field label="Email" type="email" value={form.email} onChange={(email) => setForm({ ...form, email })} autoComplete="email" />
           <Field label="Username" value={form.username} onChange={(username) => setForm({ ...form, username })} autoComplete="username" hint="Letters, numbers, dot, underscore and dash only." />
