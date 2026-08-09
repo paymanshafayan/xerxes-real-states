@@ -38,6 +38,23 @@ export default function MoreScreen() {
       <View style={{ padding: spacing.md }}>
         <Card style={{ marginBottom: spacing.md }}>
           <IconListItem
+            emoji="📢"
+            label="List My Property"
+            onPress={() => navigation.navigate("ListProperty")}
+          />
+          <IconListItem
+            emoji="📋"
+            label="My Listings"
+            onPress={() => navigation.navigate("MyListings")}
+          />
+          <IconListItem
+            emoji="📅"
+            label="My Visit Requests"
+            onPress={() => navigation.navigate("MyVisitRequests")}
+          />
+        </Card>
+        <Card style={{ marginBottom: spacing.md }}>
+          <IconListItem
             emoji="❤️"
             label={`${t("tabFavorites")}${favoritesCount ? ` (${favoritesCount})` : ""}`}
             onPress={() => navigation.navigate("Favorites")}

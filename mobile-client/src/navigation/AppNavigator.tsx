@@ -10,6 +10,10 @@ import ChatScreen from "../screens/ChatScreen";
 import MoreScreen from "../screens/MoreScreen";
 import PropertyDetailScreen from "../screens/PropertyDetailScreen";
 import CalculatorsScreen from "../screens/CalculatorsScreen";
+import ListPropertyScreen from "../screens/ListPropertyScreen";
+import MyListingsScreen from "../screens/MyListingsScreen";
+import MyListingDetailScreen from "../screens/MyListingDetailScreen";
+import MyVisitRequestsScreen from "../screens/MyVisitRequestsScreen";
 import { colors } from "../theme";
 import { useT } from "../store/locale";
 import { useFavoritesStore } from "../store/favorites";
@@ -60,6 +64,10 @@ function MoreStack() {
       <Stack.Screen name="Favorites" component={FavoritesScreen} options={{ headerShown: false }} />
       <Stack.Screen name="PropertyDetail" component={PropertyDetailScreen} options={{ title: "" }} />
       <Stack.Screen name="Calculators" component={CalculatorsScreen} options={{ headerShown: false }} />
+      <Stack.Screen name="ListProperty" component={ListPropertyScreen} options={{ headerShown: false }} />
+      <Stack.Screen name="MyListings" component={MyListingsScreen} options={{ headerShown: false }} />
+      <Stack.Screen name="MyListingDetail" component={MyListingDetailScreen} options={{ headerShown: false }} />
+      <Stack.Screen name="MyVisitRequests" component={MyVisitRequestsScreen} options={{ headerShown: false }} />
     </Stack.Navigator>
   );
 }

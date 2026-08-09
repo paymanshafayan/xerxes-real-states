@@ -156,3 +156,82 @@ All new endpoints require `Authorization: Bearer <jwt>` (except `/api/staff/logi
 - **Interactive map**: `MapScreen` renders properties with coordinates via `react-native-maps`; opened from the
   Properties list header. Backend stores `lat`/`lng` per property.
 - **Push notifications, document scan, geolocation, biometric unlock**: see Phase 7.3.
+
+### Phase 8 — User Listings + Visit Requests + Block System
+- **Migration**: `drizzle/0004_user_listings.sql` adds 7 tables: `user_profiles`, `staff_specialties`, `listings`, `listings_status_history`, `notifications`, `visit_requests`, `reassignment_requests`. Adds block columns to `users` (`is_blocked`, `blocked_at`, `blocked_reason`, `blocked_by_staff_id`) and listing-link columns to `properties` (`is_listed`, `source`, `listing_id`).
+
+- **User API** (auth via `verifyUserToken`): 
+  - `GET/PUT /api/user/profile` (extended profile)
+  - `POST /api/listings` (multipart upload + smart staff assignment)
+  - `GET /api/listings/mine` (with status filter + summary)
+  - `GET /api/listings/mine/[id]` (with history)
+  - `DELETE /api/listings/mine/[id]` (soft delete + hide from public)
+  - `POST /api/listings/mine/[id]/panoramas` (360° upload, post-approval only)
+  - `DELETE /api/listings/mine/[id]/panoramas/[panoramaId]`
+  - `GET /api/user/notifications` + `POST /api/user/notifications/[id]/read`
+  - `POST /api/visit-requests` + `GET /api/visit-requests/mine`
+  - `/api/auth/login` now checks `is_blocked` and returns 403 `ACCOUNT_BLOCKED`.
+
+- **Staff API** (auth via `requireStaff`, strict RBAC):
+  - `GET /api/staff/listings` — manager: all, consultant: assigned only
+  - `GET /api/staff/listings/[id]` (with permissions)
+  - `POST /api/staff/listings/[id]/approve` (assigned or manager)
+  - `POST /api/staff/listings/[id]/reject` (with reason)
+  - `POST /api/staff/listings/[id]/reassign` (manager only) + `reassign-request` (assigned)
+  - `GET /api/staff/reassign-requests` (manager)
+  - `GET/PUT /api/staff/specialties` (CRUD for staff specialties)
+  - `GET /api/staff/visit-requests` (manager all, consultant assigned) + workflow endpoints:
+    - `POST .../review` (status=staff_reviewing)
+    - `POST .../contact-owner` (available | unavailable | no_response) — **unavailable triggers block**
+    - `POST .../schedule` (set appointment)
+    - `POST .../report-unavailable` (direct block)
+  - `GET /api/admin/users` (filter `isBlocked`, search) + `POST /api/admin/users/[id]/unblock`
+
+- **Core helpers** (`src/lib/listings/`):
+  - `validation.ts` — zod schemas (profile, listing, panorama, visit-request, reassign, unblock)
+  - `assignment.ts` — smart staff assignment (specialty match + load balancing + fallback)
+  - `upload.ts` — multipart file upload to `public/uploads/{image,video,panorama}/`
+  - `notify.ts` — 10 notification helpers (in-app + push + activity log)
+  - `permissions.ts` — `getListingAccess` + `getListingPermissions` (manager > assigned > readonly > owner > none)
+  - `blocking.ts` — `reportListingUnavailable` (block user + hide listings + notify affected visitors)
+  - `data/listings.ts` — data layer: create, read, soft delete, panoramas, notifications, visit-requests, block/unblock, reassign, approve, reject
+
+- **Web UI**:
+  - `/list-property` — 7-step listing wizard with mandatory commitment checkbox
+  - `/account/listings` + `/account/listings/[id]` (with panorama upload + status history)
+  - `/account/notifications` + `/account/visit-requests`
+  - `NotificationBell` in Header with badge + 30s polling
+  - `PropertyDetail` — "Visit Request" button + modal
+  - `AccountContent` — quick-link cards + CTA banner
+  - Admin: `/admin/user-listings` + `/admin/user-listings/[id]` (review with approve/reject)
+  - Admin: `/admin/visit-requests` (kanban with contact-owner + schedule + block trigger)
+  - Admin: `/admin/blocked-users` (list + unblock modal)
+  - AdminShell sidebar: 3 new items (User Listings, Visit Requests, Blocked Users)
+
+- **Mobile client app** (`mobile-client/`):
+  - `src/api/user.ts` — user JWT auth (login/register/logout) with token in AsyncStorage
+  - `src/api/listings.ts` — typed wrappers for all user-side listing/visit-request endpoints
+  - `src/screens/ListPropertyScreen.tsx` — 7-step wizard
+  - `src/screens/MyListingsScreen.tsx` — list with status badges + delete
+  - `src/screens/MyListingDetailScreen.tsx` — detail + panorama management
+  - `src/screens/MyVisitRequestsScreen.tsx` — timeline view
+  - `AppNavigator.tsx` — new stack screens
+  - `MoreScreen.tsx` — 3 new menu items
+
+- **Tests** (`tests/listings/`):
+  - `validation.test.ts` — zod schema tests (valid + edge cases)
+  - `permissions.test.ts` — RBAC tests (all access levels)
+
+- **Features**:
+  - Free user submissions (no quantity limit, can register unlimited properties)
+  - Smart staff assignment via `staff_specialties` (city + category + listing type)
+  - Each listing is owned by exactly one assigned staff (RBAC enforced everywhere)
+  - Other staff can VIEW listings but cannot edit/approve/reject
+  - Reassign workflow: staff requests → manager approves
+  - 360° panorama upload ONLY after approval (uses existing `VirtualTour` component)
+  - Visit request workflow: pending → staff_reviewing → owner_contacted → approved → completed
+  - Block system: instant block on unavailability report; cascades to all listings + visit requests
+  - Unblock: manager-only, with reason; listings NOT auto-restored
+  - Notification pipeline: in-app + push (Expo) + email + activity log
+  - Rate limiting: 10/hr listings, 5/day visit requests, 10/hr panoramas
+  - 8 new indexes for performance (city, status, user, assigned_staff, etc.)
