@@ -11,6 +11,7 @@ export interface Dictionary {
     search: string;
     favorites: string;
     blog: string;
+    app: string;
   };
   hero: {
     title: string;
@@ -125,6 +126,7 @@ const en: Dictionary = {
     search: "Search",
     favorites: "Favorites",
     blog: "Blog",
+    app: "App",
   },
   hero: {
     title: "Find Your Dream Home in Northern Cyprus",
@@ -239,6 +241,7 @@ const tr: Dictionary = {
     search: "Ara",
     favorites: "Favoriler",
     blog: "Blog",
+    app: "Uygulama",
   },
   hero: {
     title: "Kuzey Kıbrıs'ta Hayalinizdeki Evi Bulun",
@@ -353,6 +356,7 @@ const fa: Dictionary = {
     search: "جستجو",
     favorites: "علاقه‌مندی‌ها",
     blog: "بلاگ",
+    app: "اپلیکیشن",
   },
   hero: {
     title: "خانه رویایی خود را در قبرس شمالی پیدا کنید",
@@ -467,6 +471,7 @@ const ru: Dictionary = {
     search: "Поиск",
     favorites: "Избранное",
     blog: "Блог",
+    app: "Приложение",
   },
   hero: {
     title: "Найдите дом мечты в Северном Кипре",

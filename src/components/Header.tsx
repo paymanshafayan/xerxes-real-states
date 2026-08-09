@@ -84,6 +84,12 @@ export default function Header({ dict, locale, onLocaleChange }: HeaderProps) {
             >
               {dict.nav.contact}
             </Link>
+            <Link
+              href="/app"
+              className="px-3 py-2 text-sm font-medium text-gray-700 hover:text-primary rounded-lg hover:bg-gray-50 transition-colors"
+            >
+              {dict.nav.app}
+            </Link>
           </nav>
 
           {/* Right side */}
@@ -199,6 +205,13 @@ export default function Header({ dict, locale, onLocaleChange }: HeaderProps) {
                 className="px-3 py-2.5 text-sm font-medium text-gray-700 hover:text-primary rounded-lg hover:bg-gray-50"
               >
                 {dict.nav.contact}
+              </Link>
+              <Link
+                href="/app"
+                onClick={() => setMenuOpen(false)}
+                className="px-3 py-2.5 text-sm font-medium text-gray-700 hover:text-primary rounded-lg hover:bg-gray-50"
+              >
+                {dict.nav.app}
               </Link>
             </nav>
           </div>

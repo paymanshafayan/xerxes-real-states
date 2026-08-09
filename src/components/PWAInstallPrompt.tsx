@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { Download, X, Smartphone } from "lucide-react";
+import { useLocale } from "./AppShell";
 
 interface BeforeInstallPromptEvent extends Event {
   prompt: () => Promise<void>;
@@ -9,6 +10,13 @@ interface BeforeInstallPromptEvent extends Event {
 }
 
 export default function PWAInstallPrompt() {
+  const { locale } = useLocale();
+  const labels = {
+    en: { title: "Install the web app", description: "Quick access to properties from your home screen", ios: "Tap Share → Add to Home Screen", install: "Install web app" },
+    tr: { title: "Web uygulamasını yükleyin", description: "Ana ekranınızdan mülklere hızlı erişim", ios: "Paylaş → Ana Ekrana Ekle", install: "Web uygulamasını yükle" },
+    fa: { title: "نسخه وب را نصب کنید", description: "دسترسی سریع به املاک از صفحه اصلی گوشی", ios: "اشتراک‌گذاری ← افزودن به صفحه اصلی", install: "نصب نسخه وب" },
+    ru: { title: "Установить веб-приложение", description: "Быстрый доступ к объектам с главного экрана", ios: "Поделиться → На экран «Домой»", install: "Установить веб-приложение" },
+  }[locale];
   const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
   const [showPrompt, setShowPrompt] = useState(false);
   const [isIOS, setIsIOS] = useState(false);
@@ -82,12 +90,10 @@ export default function PWAInstallPrompt() {
           </div>
           <div>
             <h3 className="font-semibold text-gray-900 text-sm">
-              Install Xerxes App
+              {labels.title}
             </h3>
             <p className="text-xs text-gray-500 mt-1">
-              {isIOS
-                ? "Tap Share → Add to Home Screen"
-                : "Get quick access to properties"}
+              {isIOS ? labels.ios : labels.description}
             </p>
           </div>
         </div>
@@ -98,7 +104,7 @@ export default function PWAInstallPrompt() {
             className="w-full mt-3 flex items-center justify-center gap-2 py-2.5 bg-primary text-white text-sm font-semibold rounded-lg hover:bg-primary-dark transition-colors"
           >
             <Download className="w-4 h-4" />
-            Install Now
+            {labels.install}
           </button>
         )}
 

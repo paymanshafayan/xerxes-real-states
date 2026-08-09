@@ -27,10 +27,12 @@ import {
   Check,
   FileText,
   Database,
+  Smartphone,
 } from "lucide-react";
 import AdminDashboardHome from "./AdminDashboardHome";
 import AdminHelpGuide from "./AdminHelpGuide";
 import AdminApiKeys from "./AdminApiKeys";
+import AppDownloadsManager from "./AppDownloadsManager";
 import type { SampleProperty, SampleAgent } from "@/lib/data/sampleData";
 
 // Lazy imports for tabs
@@ -65,6 +67,7 @@ interface Inquiry {
 const sidebarItems = [
   { id: "dashboard", icon: LayoutDashboard, label: "Dashboard" },
   { id: "content", icon: Palette, label: "Content" },
+  { id: "app_downloads", icon: Smartphone, label: "App Downloads" },
   { id: "properties", icon: Home, label: "Properties" },
   { id: "agents", icon: Users, label: "Agents" },
   { id: "inquiries", icon: MessageSquare, label: "Inquiries" },
@@ -282,6 +285,7 @@ export default function AdminShell() {
           {activeTab === "dashboard" && <AdminDashboardHome stats={stats} />}
 
           {activeTab === "content" && <ContentManager />}
+          {activeTab === "app_downloads" && <AppDownloadsManager />}
 
           {activeTab === "properties" && (
             <div>
