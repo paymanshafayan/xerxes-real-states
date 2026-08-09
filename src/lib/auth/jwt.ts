@@ -9,28 +9,32 @@ export interface StaffJwtPayload {
   exp?: number;
 }
 
-// AUTH_SECRET is mandatory in production: signing/verifying staff sessions
-// with a hardcoded fallback would let anyone forge a manager token.
-if (!process.env.AUTH_SECRET && process.env.NODE_ENV === "production") {
-  throw new Error(
-    "AUTH_SECRET environment variable is required in production. " +
-      "Generate one with `openssl rand -base64 48` and set it before starting the app."
-  );
-}
-
-if (!process.env.AUTH_SECRET && process.env.NODE_ENV === "production") {
-  throw new Error(
-    "AUTH_SECRET environment variable must be set in production. Refusing to start with an insecure default JWT signing secret."
-  );
-}
-
-const secret = new TextEncoder().encode(
-  // Fallback only ever applies outside production (local dev with no .env set up yet).
-  process.env.AUTH_SECRET || "xerxes-dev-secret-change-me-in-production"
-);
-
 const ISSUER = "xerxes-realty";
 const AUDIENCE = "xerxes-mobile";
+const USER_AUDIENCE = "xerxes-web-user";
+
+/**
+ * Resolves the signing key only when an auth operation is performed.
+ *
+ * Route modules are evaluated by `next build` while collecting route metadata.
+ * Validating this at module scope makes a production build depend on a runtime
+ * secret, even though that secret is normally injected only when the app starts.
+ */
+function getSecret(): Uint8Array {
+  const authSecret = process.env.AUTH_SECRET;
+
+  if (!authSecret && process.env.NODE_ENV === "production") {
+    throw new Error(
+      "AUTH_SECRET environment variable is required in production. " +
+        "Generate one with `openssl rand -base64 48` and set it before starting the app."
+    );
+  }
+
+  // The fallback is deliberately limited to non-production environments.
+  return new TextEncoder().encode(
+    authSecret || "xerxes-dev-secret-change-me-in-production"
+  );
+}
 
 export async function signStaffToken(
   payload: Omit<StaffJwtPayload, "exp">,
@@ -48,12 +52,15 @@ export async function signStaffToken(
     .setAudience(AUDIENCE)
     .setIssuedAt()
     .setExpirationTime(`${expiresInSeconds}s`)
-    .sign(secret);
+    .sign(getSecret());
 }
 
 export async function verifyStaffToken(
   token: string
 ): Promise<StaffJwtPayload | null> {
+  // Resolve outside the try block so a missing production secret is never
+  // mistaken for an invalid token.
+  const secret = getSecret();
   try {
     const { payload } = await jwtVerify(token, secret, {
       issuer: ISSUER,
@@ -78,8 +85,6 @@ export interface UserJwtPayload {
   email: string;
 }
 
-const USER_AUDIENCE = "xerxes-web-user";
-
 export async function signUserToken(
   payload: UserJwtPayload,
   expiresInSeconds = 60 * 60 * 24 * 7 // 7 days
@@ -91,12 +96,15 @@ export async function signUserToken(
     .setAudience(USER_AUDIENCE)
     .setIssuedAt()
     .setExpirationTime(`${expiresInSeconds}s`)
-    .sign(secret);
+    .sign(getSecret());
 }
 
 export async function verifyUserToken(
   token: string
 ): Promise<UserJwtPayload | null> {
+  // Resolve outside the try block so a missing production secret is never
+  // mistaken for an invalid token.
+  const secret = getSecret();
   try {
     const { payload } = await jwtVerify(token, secret, {
       issuer: ISSUER,
