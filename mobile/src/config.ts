@@ -4,7 +4,7 @@ import Constants from "expo-constants";
 export const API_URL: string =
   (Constants.expoConfig?.extra?.apiUrl as string) ||
   process.env.EXPO_PUBLIC_API_URL ||
-  "http://localhost:3000";
+  "https://xerxes-real-states-production.up.railway.app";
 
 export const APP_NAME = "Xerxes Realty";
 export const DEFAULT_LOCALE = "fa";
