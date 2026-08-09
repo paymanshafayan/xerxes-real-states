@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Calculator } from "lucide-react";
+import { Calculator, X } from "lucide-react";
 
 interface MortgageCalculatorProps {
   propertyPrice: number;
@@ -54,7 +54,7 @@ export default function MortgageCalculator({
           onClick={() => setIsOpen(false)}
           className="text-gray-400 hover:text-gray-600"
         >
-          ✕
+          <X className="w-5 h-5 text-gray-400" />
         </button>
       </div>
 

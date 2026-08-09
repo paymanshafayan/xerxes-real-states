@@ -17,6 +17,8 @@ import {
   Camera,
   Calendar,
   Search,
+  FileText,
+  Database,
 } from "lucide-react";
 
 interface Props {
@@ -97,10 +99,20 @@ export default function AdminDashboardHome({ stats }: Props) {
       {/* Data Source */}
       {stats && (
         <div className="bg-white border border-gray-200 rounded-xl p-5">
-          <p className="text-sm text-gray-600">
-            <span className="font-semibold">Data Source:</span>{" "}
-            {stats.dataSource === "sample" ? "📄 Sample Data File" : "🗄️ PostgreSQL Database"}
-          </p>
+          <div className="flex items-center gap-2 text-sm text-gray-600">
+            <span className="font-semibold">Data Source:</span>
+            {stats.dataSource === "sample" ? (
+              <span className="flex items-center gap-1">
+                <FileText className="w-4 h-4 text-gray-400 fill-gray-400" />
+                <span>Sample Data File</span>
+              </span>
+            ) : (
+              <span className="flex items-center gap-1">
+                <Database className="w-4 h-4 text-gray-400 fill-gray-400" />
+                <span>PostgreSQL Database</span>
+              </span>
+            )}
+          </div>
         </div>
       )}
     </div>

@@ -24,7 +24,7 @@ const helpContent: Record<string, { title: string; steps: { title: string; desc:
       { title: "Upload Images", desc: "Use the drag & drop uploader or paste image URLs. First image becomes the cover photo. Drag to reorder." },
       { title: "Select Features", desc: "Click feature tags (Pool, Garden, etc.) to toggle them on/off for the property." },
       { title: "Generate Slug", desc: "Click 'Generate' to auto-create a URL-friendly slug from the English title." },
-      { title: "Edit / Delete", desc: "Use the edit (✏️) and delete (🗑️) buttons in the table to modify or remove properties." },
+      { title: "Edit / Delete", desc: "Use the edit and delete icon buttons in the table to modify or remove properties." },
     ],
   },
   agents: {
@@ -41,7 +41,7 @@ const helpContent: Record<string, { title: string; steps: { title: string; desc:
     steps: [
       { title: "View Inquiries", desc: "See all contact form submissions and appointment requests." },
       { title: "Status Tracking", desc: "Each inquiry has a status: New (yellow), Read (blue), Resolved (green)." },
-      { title: "Update Status", desc: "Click 👁️ to mark as read, ✅ to mark as resolved." },
+      { title: "Update Status", desc: "Click the eye icon to mark as read, check icon to mark as resolved." },
       { title: "Appointment Requests", desc: "Viewing appointment requests appear with 'VIEWING APPOINTMENT REQUEST' prefix in the message." },
     ],
   },

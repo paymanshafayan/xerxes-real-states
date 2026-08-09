@@ -15,6 +15,7 @@ import {
   ChevronLeft,
   ChevronRight,
   Check,
+  CreditCard,
 } from "lucide-react";
 import { useLocale } from "./AppShell";
 import PropertyCard from "./PropertyCard";
@@ -339,7 +340,8 @@ export default function PropertyDetail({
               onClick={() => setShowPayment(true)}
               className="w-full flex items-center justify-center gap-2 py-3 mb-4 bg-gradient-to-r from-green-500 to-emerald-600 text-white font-semibold rounded-lg hover:from-green-600 hover:to-emerald-700 transition-all shadow-md"
             >
-              💳 Pay Deposit / Book Now
+              <CreditCard className="w-5 h-5 text-gray-200 fill-gray-200" />
+              <span>Pay Deposit / Book Now</span>
             </button>
           )}
 

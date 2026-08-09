@@ -21,3 +21,18 @@ Do not delete the Volume. Deleting it removes the saved connection string; the
 application will return to the setup flow on its next deployment. For managed
 or multi-instance production installations, Railway Variables remain a valid
 alternative: `DATABASE_URL` takes precedence over the Volume configuration.
+
+## Database Schema & Migrations on Railway
+
+When deploying to Railway with a PostgreSQL database attached via `DATABASE_URL`:
+- The schema is defined in `src/db/schema.ts` (including tables like `page_views`, `properties`, `staff`, etc.).
+- On startup (`npm start`) or during build/postinstall, the application executes `drizzle-kit push --force` (via `npm run db:push` or `npm run db:migrate`) using `drizzle.config.ts`.
+- `drizzle-kit push --force` inspects `src/db/schema.ts`, connects to Railway's PostgreSQL database (`DATABASE_URL`), and automatically creates all missing tables and columns.
+- If you ever need to manually synchronize the schema via Railway CLI or in a custom Deploy Command, run:
+  ```bash
+  npm run db:push
+  ```
+  or:
+  ```bash
+  npx drizzle-kit push --force
+  ```

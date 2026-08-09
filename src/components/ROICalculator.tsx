@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { TrendingUp } from "lucide-react";
+import { TrendingUp, X } from "lucide-react";
 
 interface ROICalculatorProps {
   propertyPrice: number;
@@ -54,7 +54,7 @@ export default function ROICalculator({
           onClick={() => setIsOpen(false)}
           className="text-gray-400 hover:text-gray-600"
         >
-          ✕
+          <X className="w-5 h-5 text-gray-400" />
         </button>
       </div>
 

@@ -116,8 +116,7 @@ export default function Header({ dict, locale, onLocaleChange }: HeaderProps) {
                 className="flex items-center gap-1.5 px-3 py-2 text-sm font-medium text-gray-700 hover:text-primary rounded-lg hover:bg-gray-50 transition-colors"
               >
                 <Globe className="w-4 h-4" />
-                <span className="hidden sm:inline">{currentLocale.flag} {currentLocale.nativeName}</span>
-                <span className="sm:hidden">{currentLocale.flag}</span>
+                <span>{currentLocale.flag} {currentLocale.code.toUpperCase()}</span>
                 <ChevronDown className="w-3 h-3" />
               </button>
               {langOpen && (
@@ -126,7 +125,7 @@ export default function Header({ dict, locale, onLocaleChange }: HeaderProps) {
                     className="fixed inset-0 z-10"
                     onClick={() => setLangOpen(false)}
                   />
-                  <div className="absolute right-0 mt-1 w-44 bg-white rounded-xl shadow-lg border border-gray-200 py-1 z-20">
+                  <div className="absolute right-0 mt-1 w-28 bg-white rounded-xl shadow-lg border border-gray-200 py-1 z-20">
                     {locales.map((loc) => (
                       <button
                         key={loc.code}
@@ -134,14 +133,14 @@ export default function Header({ dict, locale, onLocaleChange }: HeaderProps) {
                           onLocaleChange(loc.code);
                           setLangOpen(false);
                         }}
-                        className={`w-full text-left px-4 py-2.5 text-sm hover:bg-gray-50 flex items-center gap-2 transition-colors ${
+                        className={`w-full text-left px-4 py-2 text-sm hover:bg-gray-50 flex items-center gap-2 transition-colors ${
                           locale === loc.code
                             ? "text-primary font-semibold bg-primary-light"
                             : "text-gray-700"
                         }`}
                       >
-                        <span>{loc.flag}</span>
-                        <span>{loc.nativeName}</span>
+                        <span className="text-base">{loc.flag}</span>
+                        <span className="font-medium uppercase">{loc.code.toUpperCase()}</span>
                       </button>
                     ))}
                   </div>

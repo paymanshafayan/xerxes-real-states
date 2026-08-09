@@ -21,6 +21,12 @@ import {
   ChevronRight,
   Key,
   Palette,
+  Pencil,
+  Trash2,
+  Eye,
+  Check,
+  FileText,
+  Database,
 } from "lucide-react";
 import AdminDashboardHome from "./AdminDashboardHome";
 import AdminHelpGuide from "./AdminHelpGuide";
@@ -296,7 +302,7 @@ export default function AdminShell() {
                       <td className="px-4 py-3"><span className={`px-2 py-1 rounded text-xs font-medium ${p.type === "sale" ? "bg-green-50 text-green-700" : "bg-amber-50 text-amber-700"}`}>{p.type}</span></td>
                       <td className="px-4 py-3 font-semibold">£{p.price.toLocaleString()}</td>
                       <td className="px-4 py-3 capitalize">{p.city}</td>
-                      <td className="px-4 py-3"><div className="flex gap-1"><button onClick={() => { setEditingProperty(p); setShowPropertyForm(true); }} className="p-1 text-blue-600 hover:bg-blue-50 rounded">✏️</button><button onClick={() => handleDeleteProperty(p.id)} className="p-1 text-red-600 hover:bg-red-50 rounded">🗑️</button></div></td>
+                      <td className="px-4 py-3"><div className="flex gap-1"><button onClick={() => { setEditingProperty(p); setShowPropertyForm(true); }} className="p-1 text-gray-500 hover:bg-gray-100 rounded" title="Edit"><Pencil className="w-4 h-4 text-gray-400" /></button><button onClick={() => handleDeleteProperty(p.id)} className="p-1 text-gray-500 hover:bg-gray-100 rounded" title="Delete"><Trash2 className="w-4 h-4 text-gray-400" /></button></div></td>
                     </tr>
                   ))}</tbody></table>
                 </div>
@@ -329,7 +335,7 @@ export default function AdminShell() {
               <div className="bg-white border border-gray-200 rounded-xl overflow-hidden">
                 <div className="overflow-x-auto"><table className="w-full text-sm"><thead className="bg-gray-50"><tr><th className="text-left px-4 py-3 font-medium text-gray-600">Name</th><th className="text-left px-4 py-3 font-medium text-gray-600">Email</th><th className="text-left px-4 py-3 font-medium text-gray-600">Message</th><th className="text-left px-4 py-3 font-medium text-gray-600">Status</th><th className="px-4 py-3" /></tr></thead>
                 <tbody>{inquiries.length === 0 ? <tr><td colSpan={5} className="text-center py-10 text-gray-400">No inquiries yet</td></tr> : inquiries.map((inq) => (
-                  <tr key={inq.id} className="border-t border-gray-100"><td className="px-4 py-3 font-medium text-gray-900">{inq.name}</td><td className="px-4 py-3 text-gray-600">{inq.email}</td><td className="px-4 py-3 text-gray-600 max-w-[200px] truncate">{inq.message}</td><td className="px-4 py-3"><span className={`px-2 py-1 rounded text-xs font-medium ${inq.status === "new" ? "bg-amber-50 text-amber-700" : inq.status === "read" ? "bg-blue-50 text-blue-700" : "bg-green-50 text-green-700"}`}>{inq.status}</span></td><td className="px-4 py-3"><div className="flex gap-1"><button onClick={() => handleInquiryStatus(inq.id, "read")} className="p-1 text-blue-600 hover:bg-blue-50 rounded" title="Read">👁️</button><button onClick={() => handleInquiryStatus(inq.id, "resolved")} className="p-1 text-green-600 hover:bg-green-50 rounded" title="Resolve">✅</button></div></td></tr>
+                  <tr key={inq.id} className="border-t border-gray-100"><td className="px-4 py-3 font-medium text-gray-900">{inq.name}</td><td className="px-4 py-3 text-gray-600">{inq.email}</td><td className="px-4 py-3 text-gray-600 max-w-[200px] truncate">{inq.message}</td><td className="px-4 py-3"><span className={`px-2 py-1 rounded text-xs font-medium ${inq.status === "new" ? "bg-amber-50 text-amber-700" : inq.status === "read" ? "bg-blue-50 text-blue-700" : "bg-green-50 text-green-700"}`}>{inq.status}</span></td><td className="px-4 py-3"><div className="flex gap-1"><button onClick={() => handleInquiryStatus(inq.id, "read")} className="p-1 text-gray-500 hover:bg-gray-100 rounded" title="Read"><Eye className="w-4 h-4 text-gray-400" /></button><button onClick={() => handleInquiryStatus(inq.id, "resolved")} className="p-1 text-gray-500 hover:bg-gray-100 rounded" title="Resolve"><Check className="w-4 h-4 text-gray-400" /></button></div></td></tr>
                 ))}</tbody></table></div>
               </div>
             </div>
@@ -347,8 +353,8 @@ export default function AdminShell() {
               <div className="bg-white border border-gray-200 rounded-xl p-6">
                 <h3 className="font-semibold text-gray-900 mb-4">Data Source</h3>
                 <div className="space-y-3">
-                  <label className="flex items-center gap-3 p-4 border border-gray-200 rounded-lg cursor-pointer hover:border-primary"><input type="radio" name="ds" checked={stats?.dataSource === "sample"} onChange={() => handleDataSourceChange("sample")} className="w-4 h-4 text-primary" /><div><p className="font-medium text-gray-900">📄 Sample Data</p><p className="text-xs text-gray-500">Load from sample data file</p></div></label>
-                  <label className="flex items-center gap-3 p-4 border border-gray-200 rounded-lg cursor-pointer hover:border-primary"><input type="radio" name="ds" checked={stats?.dataSource === "database"} onChange={() => handleDataSourceChange("database")} className="w-4 h-4 text-primary" /><div><p className="font-medium text-gray-900">🗄️ Database</p><p className="text-xs text-gray-500">Load from PostgreSQL</p></div></label>
+                  <label className="flex items-center gap-3 p-4 border border-gray-200 rounded-lg cursor-pointer hover:border-primary"><input type="radio" name="ds" checked={stats?.dataSource === "sample"} onChange={() => handleDataSourceChange("sample")} className="w-4 h-4 text-primary" /><div><p className="font-medium text-gray-900 flex items-center gap-1.5"><FileText className="w-4 h-4 text-gray-400 fill-gray-400" /><span>Sample Data</span></p><p className="text-xs text-gray-500">Load from sample data file</p></div></label>
+                  <label className="flex items-center gap-3 p-4 border border-gray-200 rounded-lg cursor-pointer hover:border-primary"><input type="radio" name="ds" checked={stats?.dataSource === "database"} onChange={() => handleDataSourceChange("database")} className="w-4 h-4 text-primary" /><div><p className="font-medium text-gray-900 flex items-center gap-1.5"><Database className="w-4 h-4 text-gray-400 fill-gray-400" /><span>Database</span></p><p className="text-xs text-gray-500">Load from PostgreSQL</p></div></label>
                 </div>
               </div>
               <div className="bg-white border border-gray-200 rounded-xl p-6">
