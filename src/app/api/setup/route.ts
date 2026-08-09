@@ -22,9 +22,11 @@ export async function GET() {
       databaseConfigured: true,
     });
   } catch {
-    // Database configuration is not available yet; do not expose the setup
-    // flow until the application can persist it safely.
-    return NextResponse.json({ required: false, databaseReady: false });
+    return NextResponse.json({
+      required: true,
+      databaseConfigured: true,
+      databaseReady: false,
+    });
   }
 }
 
@@ -38,8 +40,8 @@ export async function POST(request: NextRequest) {
     if (!/^[a-zA-Z0-9_.-]{3,100}$/.test(username)) {
       return NextResponse.json({ error: "Username must be at least 3 characters and contain only letters, numbers, . _ or -." }, { status: 400 });
     }
-    if (password.length < 12) {
-      return NextResponse.json({ error: "Password must contain at least 12 characters." }, { status: 400 });
+    if (password.length < 10) {
+      return NextResponse.json({ error: "Password must contain at least 10 characters." }, { status: 400 });
     }
     const configuredDatabaseUrl = getBootstrapDatabaseUrl();
     if (databaseUrl) {
