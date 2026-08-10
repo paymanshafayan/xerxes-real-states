@@ -1,6 +1,7 @@
 "use client";
 
-import { X, HelpCircle, BookOpen, ChevronRight } from "lucide-react";
+import { useEffect, useState } from "react";
+import { X, HelpCircle, BookOpen, ChevronRight, ArrowLeft } from "lucide-react";
 
 interface Props {
   section: string | null;
@@ -25,6 +26,38 @@ const helpContent: Record<string, { title: string; steps: { title: string; desc:
       { title: "Select Features", desc: "Click feature tags (Pool, Garden, etc.) to toggle them on/off for the property." },
       { title: "Generate Slug", desc: "Click 'Generate' to auto-create a URL-friendly slug from the English title." },
       { title: "Edit / Delete", desc: "Use the edit and delete icon buttons in the table to modify or remove properties." },
+    ],
+  },
+  user_listings: {
+    title: "User Property Listings",
+    steps: [
+      { title: "Review Submissions", desc: "View property listings submitted by website users and customers awaiting approval." },
+      { title: "Approve or Reject", desc: "Open any listing to review all details, photos, and location, then approve to publish or reject with a reason." },
+      { title: "Staff Reassignment", desc: "Manage staff assignment and reassign requests for user-submitted listings." },
+    ],
+  },
+  visit_requests: {
+    title: "Visit Requests",
+    steps: [
+      { title: "Kanban Board", desc: "Track customer visit requests across stages: Pending, Under Review, Owner Contacted, Scheduled, Completed." },
+      { title: "Schedule Appointments", desc: "Set visit date/time and notify the customer and property owner." },
+      { title: "Block Spam/Unavailable", desc: "If an owner is unavailable or spamming, report and manage blocked accounts." },
+    ],
+  },
+  blocked_users: {
+    title: "Blocked Users",
+    steps: [
+      { title: "View Blocked Accounts", desc: "See users blocked for spam, fake listings, or repeated unavailability." },
+      { title: "Reason & History", desc: "Check why and when an account was blocked and which staff member reported it." },
+      { title: "Unblock Accounts", desc: "Managers can unblock accounts and restore access with an administrative note." },
+    ],
+  },
+  app_downloads: {
+    title: "App Downloads & APK Distribution",
+    steps: [
+      { title: "Customer & Staff Apps", desc: "Manage download links and APK files for both Customer App and Staff App." },
+      { title: "Direct APK Upload", desc: "Upload a signed Android APK up to 200MB. It will be stored in Cloudflare R2 or local storage and served directly." },
+      { title: "Store Links", desc: "Add Google Play, Apple App Store, or direct download buttons shown on the public app download page." },
     ],
   },
   agents: {
@@ -121,7 +154,13 @@ const helpContent: Record<string, { title: string; steps: { title: string; desc:
 };
 
 export default function AdminHelpGuide({ section, onClose }: Props) {
-  const content = section ? helpContent[section] : null;
+  const [activeSection, setActiveSection] = useState<string | null>(section || null);
+
+  useEffect(() => {
+    setActiveSection(section || null);
+  }, [section]);
+
+  const content = activeSection ? helpContent[activeSection] : null;
   const allSections = Object.entries(helpContent);
 
   return (
@@ -142,7 +181,10 @@ export default function AdminHelpGuide({ section, onClose }: Props) {
               <p className="text-xs text-gray-500">Step-by-step instructions</p>
             </div>
           </div>
-          <button onClick={onClose} className="w-8 h-8 flex items-center justify-center rounded-full text-gray-400 hover:text-gray-600 hover:bg-gray-100">
+          <button
+            onClick={onClose}
+            className="w-8 h-8 flex items-center justify-center rounded-full text-gray-400 hover:text-gray-600 hover:bg-gray-100"
+          >
             <X className="w-5 h-5" />
           </button>
         </div>
@@ -152,17 +194,26 @@ export default function AdminHelpGuide({ section, onClose }: Props) {
           {content ? (
             /* Section-specific help */
             <div className="space-y-4">
-              {content.steps.map((step, i) => (
-                <div key={i} className="flex gap-4 p-4 bg-gray-50 rounded-xl">
-                  <div className="w-8 h-8 rounded-full bg-primary text-white flex items-center justify-center text-sm font-bold shrink-0">
-                    {i + 1}
+              <button
+                onClick={() => setActiveSection(null)}
+                className="inline-flex items-center gap-1.5 text-sm font-medium text-primary hover:underline"
+              >
+                <ArrowLeft className="w-4 h-4" />
+                Back to all topics
+              </button>
+              <div className="space-y-4 pt-2">
+                {content.steps.map((step, i) => (
+                  <div key={i} className="flex gap-4 p-4 bg-gray-50 rounded-xl">
+                    <div className="w-8 h-8 rounded-full bg-primary text-white flex items-center justify-center text-sm font-bold shrink-0">
+                      {i + 1}
+                    </div>
+                    <div>
+                      <h3 className="font-semibold text-gray-900 text-sm">{step.title}</h3>
+                      <p className="text-sm text-gray-600 mt-1 leading-relaxed">{step.desc}</p>
+                    </div>
                   </div>
-                  <div>
-                    <h3 className="font-semibold text-gray-900 text-sm">{step.title}</h3>
-                    <p className="text-sm text-gray-600 mt-1 leading-relaxed">{step.desc}</p>
-                  </div>
-                </div>
-              ))}
+                ))}
+              </div>
             </div>
           ) : (
             /* Full guide - all sections */
@@ -170,11 +221,7 @@ export default function AdminHelpGuide({ section, onClose }: Props) {
               {allSections.map(([key, val]) => (
                 <button
                   key={key}
-                  onClick={() => {
-                    // Navigate to section-specific help
-                    const el = document.querySelector(`[data-help="${key}"]`);
-                    // Just show the section
-                  }}
+                  onClick={() => setActiveSection(key)}
                   className="w-full flex items-center justify-between p-4 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors text-left"
                 >
                   <div className="flex items-center gap-3">

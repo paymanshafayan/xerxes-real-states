@@ -2,9 +2,12 @@ import { NextRequest, NextResponse } from "next/server";
 import { requireStaff } from "@/lib/auth/session";
 import { deleteAppApk, uploadAppApk } from "@/lib/appStorage";
 
-const MAX_APK_BYTES = 200 * 1024 * 1024;
+export const runtime = "nodejs";
+export const maxDuration = 300; // 5 minutes max runtime for APK upload
 
-/** Store customer/staff APKs in the configured public Cloudflare R2 bucket. */
+const MAX_APK_BYTES = 200 * 1024 * 1024; // 200 MB
+
+/** Store customer/staff APKs in R2 or local storage fallback. */
 export async function POST(request: NextRequest) {
   const auth = await requireStaff(request, ["manager"]);
   if (auth instanceof NextResponse) return auth;
@@ -18,10 +21,11 @@ export async function POST(request: NextRequest) {
     if (!file.name.toLowerCase().endsWith(".apk") || file.size === 0 || file.size > MAX_APK_BYTES) {
       return NextResponse.json({ error: "Upload a valid APK no larger than 200 MB." }, { status: 400 });
     }
-    return NextResponse.json(await uploadAppApk(file, app));
+    const res = await uploadAppApk(file, app);
+    return NextResponse.json(res);
   } catch (error) {
     const message = error instanceof Error ? error.message : "APK upload failed.";
-    console.error("APK upload failed", error);
+    console.error("APK upload failed:", error);
     return NextResponse.json({ error: message }, { status: 500 });
   }
 }
@@ -36,7 +40,7 @@ export async function DELETE(request: NextRequest) {
     return NextResponse.json({ success: true });
   } catch (error) {
     const message = error instanceof Error ? error.message : "APK deletion failed.";
-    console.error("APK deletion failed", error);
+    console.error("APK deletion failed:", error);
     return NextResponse.json({ error: message }, { status: 500 });
   }
 }
