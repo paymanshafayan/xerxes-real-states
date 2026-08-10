@@ -136,6 +136,7 @@ All new endpoints require `Authorization: Bearer <jwt>` (except `/api/staff/logi
     - **Backend job**: Node.js 20, TypeScript typecheck (`tsc --noEmit`), ESLint, Jest unit & integration tests (`npm test`), Drizzle schema verification.
     - **Frontend job**: Next.js production build (`next build`), SSR & 51+ static pages generation, PWA assets validation, and `.next` artifact packaging/upload (`upload-artifact@v4`).
   - `.github/workflows/build-mobile-apps.yml`: Extended to build Backend, Frontend, and Mobile apps (Staff & Client for Android APK/AAB and iOS IPA) with flexible `workflow_dispatch` targets (`all`, `web`, `backend`, `frontend`, `mobile`).
+  - Mobile build fixes (both apps): Added missing direct dependency `expo-font` (~13.0.0) to both `mobile/package.json` and `mobile-client/package.json` so `@expo/vector-icons` resolves `Font` cleanly in Metro bundler during `createBundleReleaseJsAndAssets` and Xcode bundling; updated `react-native-maps` to `~1.18.0` in `mobile/package.json` to resolve React Native 0.76 `ViewManagerWithGeneratedInterface` incompatibility on Android.
   - `package.json`: Added `npm test` script (`jest --forceExit`).
   - ESLint configuration: Configured `eslint.config.mjs` and fixed JSX unescaped entities for zero-error linting.
 - Offline auto-sync: src/lib/propertySubmit.ts extracts submit logic; on network failure the draft is saved with pendingSync true; syncPendingDrafts runs on app resume and submits queued drafts.
