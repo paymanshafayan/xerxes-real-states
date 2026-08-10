@@ -23,10 +23,6 @@ export default function BlockedUsersManager() {
   const [unblockReason, setUnblockReason] = useState("");
   const [showModal, setShowModal] = useState<number | null>(null);
 
-  useEffect(() => {
-    fetchUsers();
-  }, []);
-
   const fetchUsers = async () => {
     try {
       setLoading(true);
@@ -39,6 +35,10 @@ export default function BlockedUsersManager() {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    fetchUsers();
+  }, []);
 
   const handleUnblock = async (id: number) => {
     if (unblockReason.length < 5) {

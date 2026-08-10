@@ -41,10 +41,6 @@ export default function UserListingsManager() {
   const [loading, setLoading] = useState(true);
   const [status, setStatus] = useState("pending");
 
-  useEffect(() => {
-    fetchListings();
-  }, [status]);
-
   const fetchListings = async () => {
     try {
       setLoading(true);
@@ -57,6 +53,10 @@ export default function UserListingsManager() {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    fetchListings();
+  }, [status]);
 
   return (
     <div className="p-6">

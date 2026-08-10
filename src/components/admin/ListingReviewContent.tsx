@@ -25,10 +25,6 @@ export default function ListingReviewContent() {
   const [showRejectModal, setShowRejectModal] = useState(false);
   const [error, setError] = useState("");
 
-  useEffect(() => {
-    fetchListing();
-  }, [id]);
-
   const fetchListing = async () => {
     try {
       setLoading(true);
@@ -45,6 +41,10 @@ export default function ListingReviewContent() {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    fetchListing();
+  }, [id]);
 
   const handleApprove = async () => {
     if (!confirm("آیا از تایید این آگهی اطمینان دارید؟")) return;

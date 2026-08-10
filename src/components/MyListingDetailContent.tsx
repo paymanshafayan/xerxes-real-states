@@ -91,10 +91,6 @@ export default function MyListingDetailContent() {
   const [uploadingPanoramas, setUploadingPanoramas] = useState(false);
   const [previewPanorama, setPreviewPanorama] = useState<string | null>(null);
 
-  useEffect(() => {
-    fetchListing();
-  }, [id]);
-
   const fetchListing = async () => {
     try {
       const token = localStorage.getItem("auth_token");
@@ -124,6 +120,10 @@ export default function MyListingDetailContent() {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    fetchListing();
+  }, [id]);
 
   const handleDelete = async () => {
     if (!confirm("آیا از حذف این آگهی اطمینان دارید؟")) return;

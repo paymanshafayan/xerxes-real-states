@@ -38,10 +38,6 @@ export default function StaffVisitRequestsManager() {
   const [contactNote, setContactNote] = useState("");
   const [appointmentDate, setAppointmentDate] = useState("");
 
-  useEffect(() => {
-    fetchRequests();
-  }, [status]);
-
   const fetchRequests = async () => {
     try {
       setLoading(true);
@@ -57,6 +53,10 @@ export default function StaffVisitRequestsManager() {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    fetchRequests();
+  }, [status]);
 
   const review = async (id: number) => {
     await adminFetch(`/api/staff/visit-requests/${id}/review`, { method: "POST" });

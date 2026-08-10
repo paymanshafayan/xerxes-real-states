@@ -50,10 +50,6 @@ export default function MyVisitRequestsContent() {
   const [requests, setRequests] = useState<VisitRequest[]>([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    fetchRequests();
-  }, []);
-
   const fetchRequests = async () => {
     try {
       const token = localStorage.getItem("auth_token");
@@ -75,6 +71,10 @@ export default function MyVisitRequestsContent() {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    fetchRequests();
+  }, []);
 
   return (
     <div className="max-w-4xl mx-auto py-8 px-4">
