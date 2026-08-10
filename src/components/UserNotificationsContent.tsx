@@ -21,10 +21,6 @@ export default function UserNotificationsContent() {
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<"all" | "unread">("all");
 
-  useEffect(() => {
-    fetchNotifications();
-  }, []);
-
   const fetchNotifications = async () => {
     try {
       const token = localStorage.getItem("auth_token");
@@ -46,6 +42,10 @@ export default function UserNotificationsContent() {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    fetchNotifications();
+  }, []);
 
   const markAsRead = async (id: number) => {
     try {

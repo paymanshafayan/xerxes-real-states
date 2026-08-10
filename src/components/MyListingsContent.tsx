@@ -59,10 +59,6 @@ export default function MyListingsContent() {
   const [filter, setFilter] = useState<StatusFilter>("all");
   const [deletingId, setDeletingId] = useState<number | null>(null);
 
-  useEffect(() => {
-    fetchListings();
-  }, [filter]);
-
   const fetchListings = async () => {
     try {
       const token = localStorage.getItem("auth_token");
@@ -94,6 +90,10 @@ export default function MyListingsContent() {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    fetchListings();
+  }, [filter]);
 
   const handleDelete = async (id: number) => {
     if (!confirm("آیا از حذف این آگهی اطمینان دارید؟")) return;
