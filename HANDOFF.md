@@ -259,3 +259,25 @@ All new endpoints require `Authorization: Bearer <jwt>` (except `/api/staff/logi
   - `public/downloads/` added to `.gitignore`; docs and admin help copy updated.
 - **Action required after deploying this fix**: re-upload the APK from
   Admin → App Downloads so the file is written to the persistent volume.
+
+### Phase 8.2 — Fix Railway deploy workflow (volume step fails with CLI v5.2.0)
+- **Failure**: `error: unexpected argument '--service' found` from
+  `railway volume list --service "$RAILWAY_SERVICE_NAME" --json` (and the same
+  would happen for `railway volume add --service ...`).
+- **Root cause**: in the pinned `@railway/cli@5.2.0` the `--service` flag on the
+  `volume` command is a **parent-level flag** (must precede the subcommand:
+  `railway volume --service <id> ...`), and `volume add` expects the service
+  **ID**, not the name. The workflow used the old post-subcommand form.
+- **Fix** (`.github/workflows/deploy.yml`):
+  - Replace `railway volume list` + jq filtering with `railway service list --json`,
+    which returns each service's `id`, `name`, and attached `volumes[]` (with
+    `mountPath`) — one call provides both the service ID (needed by `volume add`)
+    and the current volume state.
+  - Service is matched by name **or** id, so `RAILWAY_SERVICE_NAME` may hold either.
+  - Creation now runs `railway volume --service "$SERVICE_ID" add --mount-path /app/public/downloads`
+    (verified against the v5.2.0 CLI surface).
+  - Same guardrails as before: existing volume with the correct mount path → no-op;
+    existing volume with a different mount path → fail with a clear error; service
+    not found → fail with a clear error.
+- The project/environment resolution in CI works with only `RAILWAY_TOKEN` (the
+  CLI derives project + environment from the project token via `projectToken` GraphQL).
