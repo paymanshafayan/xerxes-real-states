@@ -41,10 +41,10 @@ export async function GET(
   }
 
   try {
-    const fileStat = await stat(filePath);
+    const fileStat = await stat(/*turbopackIgnore: true*/ filePath);
     // Convert the Node stream to a web ReadableStream (the correct Response
     // body type) — returning a raw Node Readable can trip dev servers.
-    const stream = Readable.toWeb(createReadStream(filePath)) as unknown as BodyInit;
+    const stream = Readable.toWeb(createReadStream(/*turbopackIgnore: true*/ filePath)) as unknown as BodyInit;
     return new Response(stream, {
       headers: {
         "Content-Type": APK_CONTENT_TYPE,

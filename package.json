@@ -1,13 +1,14 @@
 {
   "name": "nextjs-postgresql-template",
   "private": true,
+  "packageManager": "npm@10.9.8",
   "scripts": {
     "dev": "next dev",
     "build": "next build",
     "start": "drizzle-kit push --force && next start",
     "db:push": "drizzle-kit push --force",
     "db:migrate": "drizzle-kit push --force",
-    "postinstall": "node scripts/patch-next-polyfills.mjs && (drizzle-kit push --force || true)",
+    "postinstall": "node scripts/patch-next-polyfills.mjs",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
     "test": "jest --forceExit"

@@ -13,7 +13,7 @@ export interface SavedMedia {
   type: MediaType;
 }
 
-const LOCAL_UPLOAD_DIR = path.join(process.cwd(), "public", "uploads");
+const LOCAL_UPLOAD_DIR = path.join(/*turbopackIgnore: true*/ process.cwd(), "public", "uploads");
 
 const ALLOWED_EXTENSIONS = new Set([
   "jpg", "jpeg", "png", "webp", "avif", "gif",
