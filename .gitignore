@@ -36,7 +36,8 @@ mobile-client/android/
 *.mobileprovision
 
 # Runtime bootstrap configuration (may contain database credentials)
-data/
+# NOTE: keep the leading slash — a bare "data/" also ignores src/lib/data/
+/data/
 .runtime/
 .DS_Store
 *.log
