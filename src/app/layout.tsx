@@ -92,9 +92,9 @@ export async function generateMetadata(): Promise<Metadata> {
     },
     icons: {
       icon: [
-        { url: "/favicon.ico", sizes: "32x32" },
+        { url: "/favicon.ico", sizes: "any" },
         { url: "/favicon.png", type: "image/png", sizes: "32x32" },
-        { url: "/logo.png", type: "image/png", sizes: "512x512" },
+        { url: "/icons/icon-192x192.png", type: "image/png", sizes: "192x192" },
       ],
       apple: "/icons/icon-192x192.png",
     },
@@ -129,8 +129,15 @@ export default async function RootLayout({
   return (
     <html lang="en" dir="ltr">
       <head>
+        {gaId && (
+          <>
+            <link rel="preconnect" href="https://www.googletagmanager.com" />
+            <link rel="dns-prefetch" href="https://www.googletagmanager.com" />
+          </>
+        )}
         <link rel="icon" href="/favicon.ico" sizes="any" />
-        <link rel="icon" href="/logo.png" type="image/png" />
+        <link rel="icon" href="/favicon.png" type="image/png" sizes="32x32" />
+        <link rel="icon" href="/icons/icon-192x192.png" type="image/png" sizes="192x192" />
         <link rel="manifest" href="/manifest.json" />
         <link rel="apple-touch-icon" href="/icons/icon-192x192.png" />
         <meta name="apple-mobile-web-app-capable" content="yes" />

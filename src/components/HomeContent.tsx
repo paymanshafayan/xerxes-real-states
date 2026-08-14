@@ -6,6 +6,7 @@ import { useLocale } from "./AppShell";
 import { useSiteContent } from "./SiteContentProvider";
 import PropertyCard from "./PropertyCard";
 import AnimatedSection from "./AnimatedSection";
+import OptimizedImage from "./OptimizedImage";
 import type { SampleProperty, SampleAgent } from "@/lib/data/sampleData";
 import { sampleCities } from "@/lib/data/sampleData";
 import { getCityName, getAgentBio } from "@/lib/utils";
@@ -69,10 +70,13 @@ export default function HomeContent({
                 href={`/properties?city=${city.name}`}
                 className="group relative rounded-xl overflow-hidden aspect-[4/3] shadow-sm hover:shadow-lg transition-shadow"
               >
-                <img
+                <OptimizedImage
                   src={city.image}
                   alt={getCityName(city, locale)}
-                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                  fill
+                  quality={70}
+                  sizes="(max-width: 768px) 50vw, (max-width: 1024px) 33vw, 190px"
+                  className="group-hover:scale-105 transition-transform duration-500"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent" />
                 <div className="absolute bottom-0 left-0 right-0 p-3">
@@ -180,11 +184,14 @@ export default function HomeContent({
                 key={agent.id}
                 className="bg-white rounded-xl p-6 text-center shadow-sm hover:shadow-md transition-shadow border border-gray-100"
               >
-                <img
-                  src={agent.photo}
-                  alt={agent.name}
-                  className="w-20 h-20 rounded-full mx-auto mb-4 object-cover"
-                />
+                <div className="w-20 h-20 rounded-full mx-auto mb-4 overflow-hidden">
+                  <OptimizedImage
+                    src={agent.photo}
+                    alt={agent.name}
+                    width={80}
+                    height={80}
+                  />
+                </div>
                 <h3 className="font-semibold text-gray-900 mb-1">{agent.name}</h3>
                 <p className="text-xs text-gray-500 mb-3">{agent.phone}</p>
                 <p className="text-sm text-gray-600 leading-relaxed">

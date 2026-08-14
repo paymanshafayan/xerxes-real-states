@@ -19,6 +19,7 @@ import {
   Calendar,
 } from "lucide-react";
 import { useLocale } from "./AppShell";
+import EmailOff from "./EmailOff";
 import PropertyCard from "./PropertyCard";
 import FavoriteButton from "./FavoriteButton";
 import ShareButtons from "./ShareButtons";
@@ -326,13 +327,15 @@ export default function PropertyDetail({
                   <Phone className="w-4 h-4" />
                   {dict.nav.contact}
                 </a>
-                <a
-                  href={`mailto:${agent.email}`}
-                  className="flex-1 flex items-center justify-center gap-1 py-2.5 border border-gray-200 text-gray-700 text-sm font-semibold rounded-lg hover:bg-gray-50 transition-colors"
-                >
-                  <Mail className="w-4 h-4" />
-                  Email
-                </a>
+                <EmailOff>
+                  <a
+                    href={`mailto:${agent.email}`}
+                    className="flex-1 flex items-center justify-center gap-1 py-2.5 border border-gray-200 text-gray-700 text-sm font-semibold rounded-lg hover:bg-gray-50 transition-colors"
+                  >
+                    <Mail className="w-4 h-4" />
+                    Email
+                  </a>
+                </EmailOff>
               </div>
             </div>
           )}

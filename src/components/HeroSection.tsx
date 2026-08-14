@@ -45,6 +45,24 @@ export default function HeroSection({ slides, textOverride }: HeroProps) {
   const [searchQuery, setSearchQuery] = useState("");
   const [current, setCurrent] = useState(0);
   const [isTransitioning, setIsTransitioning] = useState(false);
+  // Only the slides that can be shown are mounted — keeps the initial page
+  // load to the first slide (+ a prefetch of the next) instead of all
+  // full-viewport images. Neighbors are added as `current` changes, using
+  // React's "adjust state during render" pattern so no effect is needed.
+  const [mountedSlides, setMountedSlides] = useState<Set<number>>(
+    () => new Set([0, (0 + 1) % heroSlides.length])
+  );
+  const [lastMountedFor, setLastMountedFor] = useState(current);
+  if (lastMountedFor !== current) {
+    setLastMountedFor(current);
+    setMountedSlides((prev) => {
+      const next = new Set(prev);
+      next.add(current);
+      next.add((current - 1 + heroSlides.length) % heroSlides.length);
+      next.add((current + 1) % heroSlides.length);
+      return next;
+    });
+  }
   const router = useRouter();
 
   const goTo = useCallback(
@@ -92,14 +110,18 @@ export default function HeroSection({ slides, textOverride }: HeroProps) {
             transform: index === current ? "scale(1)" : "scale(1.08)",
           }}
         >
-          <OptimizedImage
-            src={slide.image}
-            alt={slide.alt}
-            fill
-            priority={index === 0}
-            sizes="100vw"
-            className="w-full h-full"
-          />
+          {mountedSlides.has(index) && (
+            <OptimizedImage
+              src={slide.image}
+              alt={slide.alt}
+              fill
+              priority={index === 0}
+              fetchPriority={index === 0 ? "high" : undefined}
+              quality={60}
+              sizes="100vw"
+              className="w-full h-full"
+            />
+          )}
         </div>
       ))}
 

@@ -49,7 +49,14 @@ export default function SetupPage() {
     <main className="min-h-screen bg-slate-950 px-4 py-12 text-slate-100">
       <section className="mx-auto max-w-lg rounded-2xl border border-slate-700 bg-slate-900 p-6 shadow-2xl sm:p-9">
         <div className="mb-4 flex items-center gap-3">
-          <img src="/logo.png" alt="Xerxes" className="h-10 w-10 rounded-xl object-contain" />
+          <img
+            src="/logo-64.webp"
+            srcSet="/logo-64.webp 1x, /logo-128.webp 2x"
+            width={40}
+            height={40}
+            alt="Xerxes"
+            className="h-10 w-10 rounded-xl object-contain"
+          />
           <div>
             <p className="text-xs font-semibold uppercase tracking-[0.2em] text-blue-400">Xerxes Real Estate</p>
             <h1 className="text-2xl font-bold">Initial setup</h1>

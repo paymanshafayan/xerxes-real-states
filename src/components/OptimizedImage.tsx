@@ -11,6 +11,10 @@ interface OptimizedImageProps {
   fill?: boolean;
   className?: string;
   priority?: boolean;
+  /** Explicit fetchpriority hint for the browser (e.g. "high" on the LCP
+   * image). Passed through to the underlying <img>/preload so Lighthouse's
+   * "fetchpriority=high on the LCP request" check is satisfied. */
+  fetchPriority?: "high" | "low" | "auto";
   quality?: number;
   sizes?: string;
   objectFit?: "cover" | "contain" | "fill" | "none";
@@ -24,8 +28,13 @@ export default function OptimizedImage({
   fill,
   className = "",
   priority = false,
+  fetchPriority,
   quality = 75,
-  sizes = "(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw",
+  // Only applied when explicitly passed or when `fill` is set (fill images
+  // need a `sizes` hint to pick a candidate). Fixed width/height images get a
+  // compact 1x/2x srcSet from Next.js when `sizes` stays undefined, which
+  // keeps the HTML small.
+  sizes,
   objectFit = "cover",
 }: OptimizedImageProps) {
   const [isLoading, setIsLoading] = useState(true);
@@ -70,7 +79,7 @@ export default function OptimizedImage({
           className={`
             ${fill ? "w-full h-full" : ""}
             ${objectFit === "cover" ? "object-cover" : objectFit === "contain" ? "object-contain" : ""}
-            ${isLoading ? "opacity-0" : "opacity-100"}
+            ${!priority && isLoading ? "opacity-0" : "opacity-100"}
             transition-opacity duration-300
             ${className}
           `}
@@ -87,10 +96,13 @@ export default function OptimizedImage({
     );
   }
 
-  // For local images and whitelisted external hosts, use Next.js Image
+  // For local images and whitelisted external hosts, use Next.js Image.
+  // Priority (LCP) images must paint immediately: no shimmer overlay and no
+  // opacity-0 fade-in — a 0-opacity element is not an LCP candidate, so the
+  // fade would delay the LCP timestamp by JS-load + the CSS transition time.
   return (
     <div className={`relative overflow-hidden ${fill ? "w-full h-full" : ""}`}>
-      {isLoading && (
+      {!priority && isLoading && (
         <div className="absolute inset-0 bg-gray-200 animate-pulse z-10" />
       )}
       <Image
@@ -100,11 +112,17 @@ export default function OptimizedImage({
         height={fill ? undefined : height}
         fill={fill}
         priority={priority}
+        fetchPriority={fetchPriority}
         quality={quality}
-        sizes={sizes}
+        sizes={
+          fill
+            ? (sizes ??
+              "(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw")
+            : sizes
+        }
         className={`
           ${objectFit === "cover" ? "object-cover" : objectFit === "contain" ? "object-contain" : ""}
-          ${isLoading ? "opacity-0" : "opacity-100"}
+          ${!priority && isLoading ? "opacity-0" : "opacity-100"}
           transition-opacity duration-300
           ${className}
         `}

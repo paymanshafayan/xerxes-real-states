@@ -216,7 +216,14 @@ export default function Header({ dict, locale, onLocaleChange }: HeaderProps) {
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
           <Link href="/" className="flex items-center gap-2.5">
-            <img src="/logo.png" alt="Xerxes" className="w-9 h-9 rounded-lg object-contain" />
+            <img
+              src="/logo-64.webp"
+              srcSet="/logo-64.webp 1x, /logo-128.webp 2x"
+              width={36}
+              height={36}
+              alt="Xerxes"
+              className="w-9 h-9 rounded-lg object-contain"
+            />
             <div className="hidden sm:block">
               <span className="text-lg font-bold text-gray-900 tracking-tight">Xerxes</span>
               <span className="text-[10px] text-gray-500 block -mt-1 tracking-wider uppercase">Real Estate</span>
