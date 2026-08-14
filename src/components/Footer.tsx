@@ -4,6 +4,7 @@ import Link from "next/link";
 import { MapPin, Phone, Mail } from "lucide-react";
 import type { Dictionary } from "@/lib/i18n/dictionaries";
 import { useSiteContent } from "./SiteContentProvider";
+import EmailOff from "./EmailOff";
 
 interface FooterProps {
   dict: Dictionary;
@@ -24,7 +25,14 @@ export default function Footer({ dict }: FooterProps) {
           {/* Brand */}
           <div className="md:col-span-1">
             <div className="flex items-center gap-2.5 mb-4">
-              <img src="/logo.png" alt="Xerxes" className="w-9 h-9 rounded-lg object-contain" />
+              <img
+                src="/logo-64.webp"
+                srcSet="/logo-64.webp 1x, /logo-128.webp 2x"
+                width={36}
+                height={36}
+                alt="Xerxes"
+                className="w-9 h-9 rounded-lg object-contain"
+              />
               <div>
                 <span className="text-lg font-bold text-white tracking-tight">Xerxes</span>
                 <span className="text-[10px] text-gray-400 block -mt-1 tracking-wider uppercase">Real Estate</span>
@@ -81,7 +89,9 @@ export default function Footer({ dict }: FooterProps) {
               </li>
               <li className="flex items-center gap-2 text-sm text-gray-400">
                 <Mail className="w-4 h-4 shrink-0 text-primary" />
-                <span>{email}</span>
+                <EmailOff>
+                  <span>{email}</span>
+                </EmailOff>
               </li>
             </ul>
           </div>

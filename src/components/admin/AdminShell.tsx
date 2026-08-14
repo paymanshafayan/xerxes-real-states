@@ -375,7 +375,10 @@ export default function AdminShell() {
           {!sidebarCollapsed && (
             <div className="flex items-center gap-2">
               <img
-                src="/logo.png"
+                src="/logo-64.webp"
+                srcSet="/logo-64.webp 1x, /logo-128.webp 2x"
+                width={32}
+                height={32}
                 alt="Xerxes"
                 className="w-8 h-8 rounded-lg object-contain"
               />

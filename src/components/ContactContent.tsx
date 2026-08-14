@@ -4,6 +4,7 @@ import { useState } from "react";
 import { MapPin, Phone, Mail, Clock } from "lucide-react";
 import { useLocale } from "./AppShell";
 import { useSiteContent } from "./SiteContentProvider";
+import EmailOff from "./EmailOff";
 
 export default function ContactContent() {
   const { dict } = useLocale();
@@ -87,10 +88,12 @@ export default function ContactContent() {
               </div>
               <div>
                 <h3 className="font-semibold text-gray-900 mb-1">{dict.contact.email}</h3>
-                <p className="text-sm text-gray-600">
-                  {email1}<br />
-                  {email2}
-                </p>
+                <EmailOff>
+                  <p className="text-sm text-gray-600">
+                    {email1}<br />
+                    {email2}
+                  </p>
+                </EmailOff>
               </div>
             </div>
 
