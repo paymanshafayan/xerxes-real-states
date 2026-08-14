@@ -260,6 +260,21 @@ All new endpoints require `Authorization: Bearer <jwt>` (except `/api/staff/logi
 - **Action required after deploying this fix**: re-upload the APK from
   Admin → App Downloads so the file is written to the persistent volume.
 
+### Phase 8.1.1 — Port the proven resumable APK transfer flow
+- The manager now sends APKs sequentially in 8 MB requests. Each request is
+  retried after a dropped network response, and the server treats a repeated
+  chunk index as an idempotent no-op.
+- Added protected chunk/finalize/cancel endpoints under
+  `/api/admin/app-downloads/upload/`. Partial uploads are stored outside the
+  public URL scheme, expire after six hours, and are never downloadable.
+- Finalization checks the on-disk byte count and atomically publishes the
+  completed file, then persists the new URL and cleans up the previous APK on
+  the server side. The old whole-file multipart, raw binary, and base64 JSON
+  endpoint remains available for backward compatibility.
+- Added `/api/mobile-app` and `/api/mobile-app/download`; stale local links are
+  hidden from the customer page and the download endpoint streams the current
+  volume-backed file or redirects to the configured R2/CDN object.
+
 ### Phase 8.2 — Fix Railway deploy workflow (volume step fails with CLI v5.2.0)
 - **Failure**: `error: unexpected argument '--service' found` from
   `railway volume list --service "$RAILWAY_SERVICE_NAME" --json` (and the same

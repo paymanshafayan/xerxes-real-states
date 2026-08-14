@@ -1,7 +1,6 @@
 import AppShell from "@/components/AppShell";
 import AppDownloadPage from "@/components/AppDownloadPage";
-import { getStaticContentSection } from "@/lib/staticContent";
-import { parseAppDownloadConfig } from "@/lib/appDownloads";
+import { getCustomerDownloadConfig } from "@/lib/appDownloadServer";
 
 // Store links are changed from the admin panel, so never cache this page at build time.
 export const dynamic = "force-dynamic";
@@ -12,6 +11,6 @@ export const metadata = {
 };
 
 export default async function CustomerAppPage() {
-  const downloads = await getStaticContentSection("app_downloads");
-  return <AppShell><AppDownloadPage config={parseAppDownloadConfig(downloads.client)} /></AppShell>;
+  const downloads = await getCustomerDownloadConfig();
+  return <AppShell><AppDownloadPage config={downloads} /></AppShell>;
 }

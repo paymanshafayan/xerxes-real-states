@@ -1,6 +1,7 @@
-import { mkdir, rm, writeFile } from "fs/promises";
+import { mkdir, readFile, rm, writeFile } from "fs/promises";
 import path from "path";
-import { findLocalApk, isValidApkName } from "@/lib/appStorage";
+import { appendApkChunk, finalizeApkUpload } from "@/lib/apkUpload";
+import { deleteAppApk, findLocalApk, isValidApkName } from "@/lib/appStorage";
 
 describe("isValidApkName", () => {
   it("accepts generated-style filenames", () => {
@@ -58,5 +59,77 @@ describe("findLocalApk", () => {
     expect(await findLocalApk("client", "../evil.apk")).toBeNull();
     expect(await findLocalApk("root", "legacy-0000.apk")).toBeNull();
     expect(await findLocalApk("staff", "legacy-0000.apk")).toBeNull();
+  });
+});
+
+describe("chunked APK publishing", () => {
+  it("is ordered, retry-safe, and publishes only after finalize", async () => {
+    const sessionId = "chunk-test-session-123";
+    const first = Buffer.from([0x50, 0x4b, 0x03, 0x04]);
+    const second = Buffer.from("xerxes-apk-payload");
+    const totalSize = first.length + second.length;
+
+    const firstResult = await appendApkChunk({
+      sessionId,
+      app: "client",
+      fileName: "app-release.apk",
+      index: 0,
+      totalSize,
+      chunk: first,
+    });
+    expect(firstResult.received).toBe(first.length);
+    expect(firstResult.expectedIndex).toBe(1);
+
+    // A retry of a chunk whose response was lost must not append it twice.
+    const duplicate = await appendApkChunk({
+      sessionId,
+      app: "client",
+      fileName: "app-release.apk",
+      index: 0,
+      totalSize,
+      chunk: first,
+    });
+    expect(duplicate.received).toBe(first.length);
+
+    await expect(
+      appendApkChunk({
+        sessionId,
+        app: "client",
+        fileName: "app-release.apk",
+        index: 2,
+        totalSize,
+        chunk: second,
+      })
+    ).rejects.toMatchObject({ status: 409, code: "APK_CHUNK_OUT_OF_ORDER" });
+
+    await appendApkChunk({
+      sessionId,
+      app: "client",
+      fileName: "app-release.apk",
+      index: 1,
+      totalSize,
+      chunk: second,
+    });
+    const result = await finalizeApkUpload({
+      sessionId,
+      app: "client",
+      fileName: "app-release.apk",
+    });
+
+    expect(result.success).toBe(true);
+    const filename = result.key.split("/").pop()!;
+    const finalPath = await findLocalApk("client", filename);
+    expect(finalPath).not.toBeNull();
+    expect(await readFile(finalPath!)).toEqual(Buffer.concat([first, second]));
+
+    // A lost finalize response can be retried after the server has already
+    // published the file; the completion receipt returns the same result.
+    const repeated = await finalizeApkUpload({
+      sessionId,
+      app: "client",
+      fileName: "app-release.apk",
+    });
+    expect(repeated.key).toBe(result.key);
+    await deleteAppApk(result.key);
   });
 });

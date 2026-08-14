@@ -10,7 +10,9 @@ export interface StoreLink {
 export interface AppDownloadConfig {
   apkUrl?: string;
   apkName?: string;
-  /** R2 object key, kept private to the admin UI so an uploaded package can be removed. */
+  apkSize?: number;
+  apkUploadedAt?: string;
+  /** Private storage key used only by the protected admin panel. */
   apkKey?: string;
   stores: StoreLink[];
 }
@@ -23,11 +25,16 @@ export function parseAppDownloadConfig(value: unknown): AppDownloadConfig {
   return {
     apkUrl: typeof raw.apkUrl === "string" ? raw.apkUrl : undefined,
     apkName: typeof raw.apkName === "string" ? raw.apkName : undefined,
+    apkSize: typeof raw.apkSize === "number" && raw.apkSize > 0 ? raw.apkSize : undefined,
+    apkUploadedAt: typeof raw.apkUploadedAt === "string" ? raw.apkUploadedAt : undefined,
     apkKey: typeof raw.apkKey === "string" ? raw.apkKey : undefined,
     stores: Array.isArray(raw.stores)
       ? raw.stores.filter((item): item is StoreLink =>
-          !!item && typeof item.id === "string" && typeof item.label === "string" &&
-          typeof item.url === "string" && ["google_play", "app_store", "direct_apk", "other"].includes(item.platform)
+          !!item &&
+          typeof item.id === "string" &&
+          typeof item.label === "string" &&
+          typeof item.url === "string" &&
+          ["google_play", "app_store", "direct_apk", "other"].includes(item.platform)
         )
       : [],
   };
