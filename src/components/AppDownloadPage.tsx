@@ -171,7 +171,7 @@ export default function AppDownloadPage({ config }: { config: AppDownloadConfig 
             <div className="mt-8 space-y-3">
               {config.apkUrl && (
                 <a
-                  href={config.apkUrl}
+                  href="/api/mobile-app/download"
                   className="w-full flex items-center justify-center gap-3 rounded-xl bg-primary px-4 py-3.5 text-white font-semibold hover:bg-primary-dark transition-colors"
                 >
                   <Download className="w-5 h-5" />
