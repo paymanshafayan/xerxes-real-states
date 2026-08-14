@@ -77,25 +77,40 @@ jobs:
           # جدیدتر، رفع شدن این باگ را در ریلیزنوت‌های CLI بررسی کنید.
           npm i -g @railway/cli@5.2.0
 
-          # APK باید روی Volume سرویس و دقیقاً در مسیر فایل عمومی دانلود باقی بماند.
-          # خروجی list شامل Volumeهای محیط است؛ serviceName فقط Volume متصل به سرویس هدف را جدا می‌کند.
-          VOLUMES_JSON=$(railway volume list --service "$RAILWAY_SERVICE_NAME" --json)
-          CONNECTED_VOLUMES=$(printf '%s' "$VOLUMES_JSON" | jq -c \
-            --arg service "$RAILWAY_SERVICE_NAME" \
-            '[.volumes[]? | select(.serviceName == $service)]')
-          CONNECTED_COUNT=$(printf '%s' "$CONNECTED_VOLUMES" | jq 'length')
-          APK_VOLUME_COUNT=$(printf '%s' "$CONNECTED_VOLUMES" | jq \
+          # APK باید روی Volume سرویس و دقیقاً در مسیر فایل عمومی دانلود باقی بماند
+          # (فایل‌ها در public/downloads/apps/{client,staff}/ ذخیره می‌شوند و از
+          #  مسیر /uploads/apps/... دانلود می‌شوند).
+          #
+          # ⚠️ نکته درباره‌ی CLI نسخه‌ی 5.2.0:
+          #   • فایلگ `--service` در کامند `volume` متعلق به والد است و باید قبل از
+          #     زیرکامند بیاید: railway volume --service <id> add/list
+          #     (فرم قدیمی `volume list --service ...` خطای clap می‌دهد).
+          #   • `volume add` برای `--service` شناسه‌ی سرویس می‌خواهد نه نام؛ برای همین
+          #     شناسه از خروجی `railway service list --json` استخراج می‌شود (همین خروجی
+          #     Volumeهای متصل به سرویس را هم می‌دهد، پس دیگر نیازی به `volume list` نیست).
+          SERVICES_JSON=$(railway service list --json)
+          SERVICE_ID=$(printf '%s' "$SERVICES_JSON" | jq -r \
+            --arg svc "$RAILWAY_SERVICE_NAME" \
+            '.[]? | select(.name == $svc or .id == $svc) | .id' | head -n1)
+          if [ -z "$SERVICE_ID" ]; then
+            echo "::error::سرویس «${RAILWAY_SERVICE_NAME}» در پروژه پیدا نشد. نام/شناسه را در سکرت RAILWAY_SERVICE_NAME بررسی کنید."
+            exit 1
+          fi
+          SERVICE_VOLUMES=$(printf '%s' "$SERVICES_JSON" | jq -c \
+            --arg svc "$RAILWAY_SERVICE_NAME" \
+            '[.[]? | select(.name == $svc or .id == $svc) | .volumes[]?]')
+          CONNECTED_COUNT=$(printf '%s' "$SERVICE_VOLUMES" | jq 'length')
+          APK_VOLUME_COUNT=$(printf '%s' "$SERVICE_VOLUMES" | jq \
             '[.[] | select(.mountPath == "/app/public/downloads")] | length')
 
           if [ "$APK_VOLUME_COUNT" -gt 0 ]; then
             echo "✅ Volume دائمی APK از قبل روی /app/public/downloads متصل است."
           elif [ "$CONNECTED_COUNT" -eq 0 ]; then
             echo "Volume متصلی برای سرویس پیدا نشد؛ Volume دائمی APK ساخته می‌شود."
-            railway volume add \
-              --service "$RAILWAY_SERVICE_NAME" \
+            railway volume --service "$SERVICE_ID" add \
               --mount-path /app/public/downloads
           else
-            EXISTING_MOUNTS=$(printf '%s' "$CONNECTED_VOLUMES" | jq -r \
+            EXISTING_MOUNTS=$(printf '%s' "$SERVICE_VOLUMES" | jq -r \
               'map(.mountPath) | join(", ")')
             echo "::error::سرویس ${RAILWAY_SERVICE_NAME} از قبل Volume با mount path متفاوت (${EXISTING_MOUNTS}) دارد. Railway فقط یک Volume برای هر سرویس اجازه می‌دهد؛ هیچ Volume حذف یا جابه‌جا نشد."
             exit 1
