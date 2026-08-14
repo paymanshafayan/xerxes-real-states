@@ -239,3 +239,23 @@ All new endpoints require `Authorization: Bearer <jwt>` (except `/api/staff/logi
   - Notification pipeline: in-app + push (Expo) + email + activity log
   - Rate limiting: 10/hr listings, 5/day visit requests, 10/hr panoramas
   - 8 new indexes for performance (city, status, user, assigned_staff, etc.)
+
+### Phase 8.1 — Fix dead APK download links (persistent storage + download route)
+- **Root cause**: `src/lib/appStorage.ts` wrote the local-storage fallback APKs to
+  `public/uploads/apps/...` — the container's ephemeral disk — while the Railway
+  deploy workflow mounts its persistent volume at `/app/public/downloads`. Any
+  upload was therefore wiped on the next deploy, leaving the stored
+  `/uploads/apps/client/<file>.apk` link returning 404.
+- **Fix**:
+  - APK local fallback now writes to the volume-backed `public/downloads/apps/{client,staff}/`
+    (matches the `/app/public/downloads` mount in `.github/workflows/deploy.yml`),
+    so packages survive redeploys.
+  - New route `GET /uploads/apps/[...path]` (`src/app/uploads/apps/[...path]/route.ts`)
+    serves those files with `Content-Disposition: attachment`, `application/vnd.android.package-archive`
+    content type, `Content-Length`, and long-lived cache headers. It keeps the
+    stable `/uploads/apps/<app>/<file>` URL scheme and falls back to the legacy
+    `public/uploads/apps/` location, so previously saved download links keep working.
+  - `deleteAppApk` now cleans up both the volume-backed and legacy local locations.
+  - `public/downloads/` added to `.gitignore`; docs and admin help copy updated.
+- **Action required after deploying this fix**: re-upload the APK from
+  Admin → App Downloads so the file is written to the persistent volume.
