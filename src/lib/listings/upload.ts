@@ -14,7 +14,7 @@ import { rateLimit } from "@/lib/rateLimit";
  * endpoint (which supports R2 presigned URLs).
  */
 
-const UPLOAD_DIR = join(process.cwd(), "public", "uploads");
+const UPLOAD_DIR = join(/*turbopackIgnore: true*/ process.cwd(), "public", "uploads");
 const MAX_FILE_SIZE = 50 * 1024 * 1024; // 50MB
 const ALLOWED_IMAGE_TYPES = ["image/jpeg", "image/jpg", "image/png", "image/webp"];
 const ALLOWED_VIDEO_TYPES = ["video/mp4", "video/webm", "video/quicktime"];

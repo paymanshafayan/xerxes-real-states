@@ -23,7 +23,7 @@ export async function transcribeAudio(
     : mimeType.includes("mp4")
     ? "mp4"
     : "webm";
-  const tmpDir = path.join(process.cwd(), ".tmp");
+  const tmpDir = path.join(/*turbopackIgnore: true*/ process.cwd(), ".tmp");
   await mkdir(tmpDir, { recursive: true });
   const tmpPath = path.join(tmpDir, `${randomUUID()}.${ext}`);
   await writeFile(tmpPath, buffer);
