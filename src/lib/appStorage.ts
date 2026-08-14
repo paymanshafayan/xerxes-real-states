@@ -1,9 +1,63 @@
 import { randomUUID } from "crypto";
-import { writeFile, mkdir, unlink } from "fs/promises";
+import { writeFile, mkdir, unlink, stat } from "fs/promises";
 import path from "path";
 import { isR2Configured, publicMediaBase } from "./storage";
 
 const APK_CONTENT_TYPE = "application/vnd.android.package-archive";
+
+/**
+ * Local (non-R2) APK storage.
+ *
+ * Production deploys mount a persistent volume at `public/downloads`
+ * (Railway: `/app/public/downloads` — see `.github/workflows/deploy.yml`), so
+ * packages uploaded here SURVIVE redeploys. Writing to `public/uploads/...`
+ * instead used to put files on the container's ephemeral disk, which is wiped
+ * on every deploy — the cause of dead download links after an upload.
+ *
+ * The published URL keeps the stable `/uploads/apps/<app>/<file>` scheme; the
+ * download route (`src/app/uploads/apps/[...path]/route.ts`) resolves it to
+ * this directory, falling back to the legacy `public/uploads/apps` location.
+ */
+const LOCAL_APK_DIR = path.join(process.cwd(), "public", "downloads", "apps");
+
+/** Legacy location used before the volume-backed layout existed. */
+const LEGACY_APK_DIR = path.join(process.cwd(), "public", "uploads", "apps");
+
+/**
+ * Only accept plain, generated-style APK filenames — never path separators,
+ * traversal sequences, or hidden files.
+ */
+export function isValidApkName(filename: string): boolean {
+  return (
+    typeof filename === "string" &&
+    filename.length > 0 &&
+    filename.length <= 120 &&
+    /^[a-zA-Z0-9][a-zA-Z0-9._-]*\.apk$/i.test(filename)
+  );
+}
+
+/**
+ * Absolute path of a locally stored APK (volume-backed location first, then
+ * the legacy location), or `null` when the file does not exist anywhere.
+ */
+export async function findLocalApk(
+  app: string,
+  filename: string
+): Promise<string | null> {
+  if ((app !== "client" && app !== "staff") || !isValidApkName(filename)) {
+    return null;
+  }
+  for (const base of [LOCAL_APK_DIR, LEGACY_APK_DIR]) {
+    const candidate = path.join(base, app, filename);
+    try {
+      const info = await stat(candidate);
+      if (info.isFile()) return candidate;
+    } catch {
+      // not present in this location — try the next one
+    }
+  }
+  return null;
+}
 
 async function r2Client() {
   const { S3Client } = await import("@aws-sdk/client-s3");
@@ -16,7 +70,8 @@ async function r2Client() {
 
 /**
  * Store a public, signed Android package. Uses Cloudflare R2 if configured,
- * otherwise cleanly falls back to local storage (public/uploads/apps/...).
+ * otherwise falls back to the persistent local volume (`public/downloads`)
+ * so the file survives redeploys.
  */
 export async function uploadAppApk(file: File, app: "client" | "staff") {
   const filename = `${Date.now()}-${randomUUID().slice(0, 8)}.apk`;
@@ -37,8 +92,10 @@ export async function uploadAppApk(file: File, app: "client" | "staff") {
     return { key, url: `${publicMediaBase()}/${key}`, name: file.name };
   }
 
-  // Fallback to local filesystem when R2 is not configured
-  const uploadDir = path.join(process.cwd(), "public", "uploads", "apps", app);
+  // Fallback: write to the volume-backed downloads directory. The URL keeps
+  // the legacy /uploads/apps/... scheme — the download route serves the file
+  // from public/downloads/apps/<app>/ so published links stay stable.
+  const uploadDir = path.join(LOCAL_APK_DIR, app);
   await mkdir(uploadDir, { recursive: true });
   const filePath = path.join(uploadDir, filename);
   await writeFile(filePath, buffer);
@@ -59,11 +116,15 @@ export async function deleteAppApk(key: string) {
       console.warn("Failed to delete APK from R2:", err);
     }
   } else {
-    try {
-      const filePath = path.join(process.cwd(), "public", "uploads", key);
-      await unlink(filePath);
-    } catch {
-      // Ignore if file is already missing
+    // Remove from both the volume-backed and legacy locations (best effort).
+    const relative = key.replace(/^apps\//, "");
+    for (const base of [LOCAL_APK_DIR, LEGACY_APK_DIR]) {
+      try {
+        const filePath = path.join(base, relative);
+        await unlink(filePath);
+      } catch {
+        // Ignore if file is already missing
+      }
     }
   }
 }

@@ -214,7 +214,7 @@ export default function AppDownloadsManager() {
         <div>
           <h3 className="font-semibold text-gray-900">Direct Android APK</h3>
           <p className="text-xs text-gray-500 mt-1">
-            Upload a signed APK (max 200 MB). It is stored in Cloudflare R2 (or local storage fallback) and replaces the current direct-download file.
+            Upload a signed APK (max 200 MB). It is stored in Cloudflare R2 or on the server&apos;s persistent download volume (survives redeploys) and replaces the current direct-download file.
           </p>
         </div>
         {config.apkUrl ? (

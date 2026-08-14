@@ -15,9 +15,11 @@ dist/
 build/
 *.tsbuildinfo
 
-# Local uploads (media stored at runtime)
+# Local uploads (media + APK packages stored at runtime)
 /public/uploads/
 /uploads/
+/public/downloads/
+/downloads/
 
 # Expo / mobile
 mobile/node_modules/

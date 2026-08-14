@@ -56,7 +56,7 @@ const helpContent: Record<string, { title: string; steps: { title: string; desc:
     title: "App Downloads & APK Distribution",
     steps: [
       { title: "Customer & Staff Apps", desc: "Manage download links and APK files for both Customer App and Staff App." },
-      { title: "Direct APK Upload", desc: "Upload a signed Android APK up to 200MB. It will be stored in Cloudflare R2 or local storage and served directly." },
+      { title: "Direct APK Upload", desc: "Upload a signed Android APK up to 200MB. It is stored in Cloudflare R2 or on the server's persistent download volume (survives redeploys) and served directly." },
       { title: "Store Links", desc: "Add Google Play, Apple App Store, or direct download buttons shown on the public app download page." },
     ],
   },
